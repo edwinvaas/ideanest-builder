@@ -36,7 +36,7 @@ const Hero = () => {
             <Button
               size="lg"
               className="bg-gradient-fire text-primary-foreground font-display font-semibold text-lg px-8 py-6 shadow-glow hover:opacity-90 transition-opacity"
-              onClick={() => navigate("/athlete")}
+              onClick={() => navigate("/onboarding")}
             >
               Bekijk Atleet Demo
               <ArrowRight className="ml-2 w-5 h-5" />
