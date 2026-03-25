@@ -20,16 +20,16 @@ const AthleteTable = () => {
   return (
     <div className="rounded-xl bg-gradient-card border border-border shadow-card overflow-hidden">
       <div className="p-6 border-b border-border">
-        <h3 className="font-display font-semibold text-lg">Atleten Overzicht</h3>
+        <h3 className="font-display font-semibold text-lg">Athletes Overview</h3>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Atleet</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Athlete</th>
               <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Score</th>
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Primaire Limiter</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Primary Limiter</th>
               <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Trend</th>
               <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Status</th>
             </tr>
@@ -64,7 +64,7 @@ const AthleteTable = () => {
                 </td>
                 <td className="px-6 py-4">
                   <span className={`text-xs px-2.5 py-1 rounded-full border ${statusColors[athlete.status]}`}>
-                    {athlete.status === "improving" ? "Progressie" : "Stagnatie"}
+                    {athlete.status === "improving" ? "Improving" : "Stagnating"}
                   </span>
                 </td>
               </tr>

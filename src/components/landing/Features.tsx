@@ -3,23 +3,23 @@ import { Target, BarChart3, Users, Brain } from "lucide-react";
 const features = [
   {
     icon: Brain,
-    title: "AI Analyse",
-    description: "Automatische analyse van jouw performance data om patronen en verbeterpunten te ontdekken.",
+    title: "AI Analysis",
+    description: "Automatic analysis of your performance data to discover patterns and areas for improvement.",
   },
   {
     icon: Target,
-    title: "Limiter Detectie",
-    description: "Identificeer je zwakste schakel — de factor die je het meest beperkt in WODs.",
+    title: "Limiter Detection",
+    description: "Identify your weakest link — the factor that limits you the most in WODs.",
   },
   {
     icon: BarChart3,
-    title: "Performance Profiel",
-    description: "Visueel overzicht van engine, strength, gymnastics en meer in één dashboard.",
+    title: "Performance Profile",
+    description: "Visual overview of engine, strength, gymnastics and more in one dashboard.",
   },
   {
     icon: Users,
     title: "Coach Dashboard",
-    description: "Overzicht van alle atleten, trends en stagnatie. Prioriteer coaching waar het nodig is.",
+    description: "Overview of all athletes, trends and stagnation. Prioritize coaching where it's needed.",
   },
 ];
 
@@ -29,10 +29,10 @@ const Features = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
-            Van data naar <span className="text-gradient-fire">actie</span>
+            From data to <span className="text-gradient-fire">action</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Niet nóg een tracking app. Wij vertellen je wat je moet doen.
+            Not just another tracking app. We tell you what to do.
           </p>
         </div>
 

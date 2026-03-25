@@ -3,28 +3,28 @@ import { Lightbulb, ChevronRight } from "lucide-react";
 const adviceItems = [
   {
     category: "Gymnastics",
-    title: "Focus op strict pull-ups",
-    description: "Bouw kracht op met 3x8 strict pull-ups voor je WOD. Dit verbetert je kipping efficiency en vermindert vermoeidheid in metcons.",
-    priority: "Hoog",
+    title: "Focus on strict pull-ups",
+    description: "Build strength with 3x8 strict pull-ups before your WOD. This improves kipping efficiency and reduces fatigue in metcons.",
+    priority: "High",
   },
   {
     category: "Mobility",
-    title: "Dagelijkse overhead mobiliteit",
-    description: "10 minuten per dag aan schouder mobiliteit. Dit verbetert je overhead squat positie en snatch techniek.",
-    priority: "Midden",
+    title: "Daily overhead mobility",
+    description: "10 minutes per day on shoulder mobility. This improves your overhead squat position and snatch technique.",
+    priority: "Medium",
   },
   {
     category: "Engine",
-    title: "Voeg interval training toe",
-    description: "2x per week 20 min EMOM met mixed modality. Dit bouwt je aerobe basis verder uit.",
-    priority: "Laag",
+    title: "Add interval training",
+    description: "2x per week 20 min EMOM with mixed modality. This builds your aerobic base further.",
+    priority: "Low",
   },
 ];
 
 const priorityColors: Record<string, string> = {
-  Hoog: "bg-primary/20 text-primary",
-  Midden: "bg-accent/20 text-accent",
-  Laag: "bg-info/20 text-info",
+  High: "bg-primary/20 text-primary",
+  Medium: "bg-accent/20 text-accent",
+  Low: "bg-info/20 text-info",
 };
 
 const AdviceSection = () => {
@@ -35,8 +35,8 @@ const AdviceSection = () => {
           <Lightbulb className="w-5 h-5 text-accent" />
         </div>
         <div>
-          <h3 className="font-display font-semibold text-lg">Verbeteradviezen</h3>
-          <p className="text-sm text-muted-foreground">Gepersonaliseerd op basis van jouw profiel</p>
+          <h3 className="font-display font-semibold text-lg">Improvement Advice</h3>
+          <p className="text-sm text-muted-foreground">Personalized based on your profile</p>
         </div>
       </div>
 

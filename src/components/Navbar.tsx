@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Home", path: "/" },
-  { label: "Atleet", path: "/athlete" },
+  { label: "Athlete", path: "/athlete" },
   { label: "Coach", path: "/coach" },
+  { label: "Strategy", path: "/strategy" },
+  { label: "AI Buddy", path: "/chat" },
 ];
 
 const Navbar = () => {
@@ -27,7 +29,7 @@ const Navbar = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 location.pathname === item.path
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary"
