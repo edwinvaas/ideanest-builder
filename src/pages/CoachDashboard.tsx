@@ -12,7 +12,7 @@ const CoachDashboard = () => {
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
               Coach <span className="text-gradient-fire">Dashboard</span>
             </h1>
-            <p className="text-muted-foreground">Overzicht van al je atleten</p>
+            <p className="text-muted-foreground">Overview of all your athletes</p>
           </div>
 
           <CoachStats />

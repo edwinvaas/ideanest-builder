@@ -12,10 +12,10 @@ const CTA = () => {
           <div className="absolute inset-0 bg-gradient-fire opacity-5" />
           <div className="relative z-10">
             <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">
-              Klaar om te starten?
+              Ready to get started?
             </h2>
             <p className="text-muted-foreground max-w-lg mx-auto mb-8">
-              Bekijk de demo en ontdek hoe jouw atleten sneller progressie kunnen maken.
+              Check out the demo and discover how your athletes can progress faster.
             </p>
             <Button
               size="lg"

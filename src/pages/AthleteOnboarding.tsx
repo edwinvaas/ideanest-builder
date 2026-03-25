@@ -8,20 +8,20 @@ import { Progress } from "@/components/ui/progress";
 import { ChevronRight, ChevronLeft, User, Trophy, Dumbbell, Activity } from "lucide-react";
 
 const steps = [
-  { title: "Persoonlijke Info", icon: User },
+  { title: "Personal Info", icon: User },
   { title: "Benchmark WODs", icon: Trophy },
   { title: "Max Lifts", icon: Dumbbell },
   { title: "Gymnastics", icon: Activity },
 ];
 
 const experienceLevels = [
-  { value: "beginner", label: "Beginner", desc: "< 1 jaar CrossFit" },
-  { value: "intermediate", label: "Intermediate", desc: "1-3 jaar CrossFit" },
-  { value: "advanced", label: "Advanced", desc: "3-5 jaar CrossFit" },
-  { value: "elite", label: "Elite", desc: "5+ jaar / competitie" },
+  { value: "beginner", label: "Beginner", desc: "< 1 year CrossFit" },
+  { value: "intermediate", label: "Intermediate", desc: "1-3 years CrossFit" },
+  { value: "advanced", label: "Advanced", desc: "3-5 years CrossFit" },
+  { value: "elite", label: "Elite", desc: "5+ years / competition" },
 ];
 
-const goalOptions = ["Competitie", "Strength", "Afvallen", "Conditie", "Skill Development", "Gezondheid"];
+const goalOptions = ["Competition", "Strength", "Weight Loss", "Conditioning", "Skill Development", "Health"];
 
 const AthleteOnboarding = () => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const AthleteOnboarding = () => {
   const [form, setForm] = useState<AthleteProfile>({
     name: "",
     age: 25,
-    gender: "Man",
+    gender: "Male",
     experience: "",
     box: "",
     goals: [],
@@ -59,7 +59,6 @@ const AthleteOnboarding = () => {
       <Navbar />
       <div className="pt-24 pb-16">
         <div className="container mx-auto px-6 max-w-2xl">
-          {/* Progress */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               {steps.map((s, i) => (
@@ -80,27 +79,26 @@ const AthleteOnboarding = () => {
             <Progress value={progress} className="h-2" />
           </div>
 
-          {/* Step Content */}
           <div className="rounded-xl bg-gradient-card border border-border p-8 shadow-card animate-fade-in">
             {step === 0 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="font-display font-bold text-2xl mb-1">Welkom bij CrossFit AI</h2>
-                  <p className="text-muted-foreground">Vertel ons over jezelf zodat we je training kunnen personaliseren.</p>
+                  <h2 className="font-display font-bold text-2xl mb-1">Welcome to CrossFit AI</h2>
+                  <p className="text-muted-foreground">Tell us about yourself so we can personalize your training.</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Naam</label>
-                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Je naam" />
+                    <label className="text-sm font-medium mb-2 block">Name</label>
+                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your name" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Leeftijd</label>
+                    <label className="text-sm font-medium mb-2 block">Age</label>
                     <Input type="number" value={form.age} onChange={(e) => setForm({ ...form, age: Number(e.target.value) })} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Geslacht</label>
+                    <label className="text-sm font-medium mb-2 block">Gender</label>
                     <div className="flex gap-2">
-                      {["Man", "Vrouw", "Anders"].map((g) => (
+                      {["Male", "Female", "Other"].map((g) => (
                         <button
                           key={g}
                           onClick={() => setForm({ ...form, gender: g })}
@@ -120,7 +118,7 @@ const AthleteOnboarding = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-3 block">Ervaring</label>
+                  <label className="text-sm font-medium mb-3 block">Experience</label>
                   <div className="grid grid-cols-2 gap-3">
                     {experienceLevels.map((lvl) => (
                       <button
@@ -140,7 +138,7 @@ const AthleteOnboarding = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-3 block">Doelen (kies er meerdere)</label>
+                  <label className="text-sm font-medium mb-3 block">Goals (select multiple)</label>
                   <div className="flex flex-wrap gap-2">
                     {goalOptions.map((goal) => (
                       <button
@@ -164,7 +162,7 @@ const AthleteOnboarding = () => {
               <div className="space-y-6">
                 <div>
                   <h2 className="font-display font-bold text-2xl mb-1">Benchmark WODs</h2>
-                  <p className="text-muted-foreground">Vul je beste tijden in (mm:ss). Laat leeg als je deze nog niet hebt gedaan.</p>
+                  <p className="text-muted-foreground">Enter your best times (mm:ss). Leave blank if you haven't done one yet.</p>
                 </div>
                 <div className="space-y-4">
                   {[
@@ -197,7 +195,7 @@ const AthleteOnboarding = () => {
               <div className="space-y-6">
                 <div>
                   <h2 className="font-display font-bold text-2xl mb-1">Max Lifts</h2>
-                  <p className="text-muted-foreground">Vul je 1RM in kilogrammen in. Gebruik 0 als je het niet weet.</p>
+                  <p className="text-muted-foreground">Enter your 1RM in kilograms. Use 0 if unknown.</p>
                 </div>
                 <div className="space-y-4">
                   {[
@@ -231,7 +229,7 @@ const AthleteOnboarding = () => {
               <div className="space-y-6">
                 <div>
                   <h2 className="font-display font-bold text-2xl mb-1">Gymnastics</h2>
-                  <p className="text-muted-foreground">Vul je maximale ononderbroken reps in.</p>
+                  <p className="text-muted-foreground">Enter your max unbroken reps.</p>
                 </div>
                 <div className="space-y-4">
                   {[
@@ -260,7 +258,6 @@ const AthleteOnboarding = () => {
               </div>
             )}
 
-            {/* Navigation */}
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
               <Button
                 variant="ghost"
@@ -269,17 +266,17 @@ const AthleteOnboarding = () => {
                 className="gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Vorige
+                Previous
               </Button>
 
               {step < steps.length - 1 ? (
                 <Button onClick={() => setStep((s) => s + 1)} className="gap-2 bg-gradient-fire hover:opacity-90">
-                  Volgende
+                  Next
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               ) : (
                 <Button onClick={handleFinish} className="gap-2 bg-gradient-fire hover:opacity-90">
-                  Start mijn journey 🚀
+                  Start my journey 🚀
                 </Button>
               )}
             </div>

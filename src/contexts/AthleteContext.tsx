@@ -4,7 +4,7 @@ export interface AthleteProfile {
   name: string;
   age: number;
   gender: string;
-  experience: string; // beginner, intermediate, advanced, elite
+  experience: string;
   box: string;
   goals: string[];
   benchmarks: {
@@ -32,10 +32,10 @@ export interface AthleteProfile {
 const defaultProfile: AthleteProfile = {
   name: "Sarah",
   age: 28,
-  gender: "Vrouw",
+  gender: "Female",
   experience: "intermediate",
   box: "CrossFit Amsterdam",
-  goals: ["Competitie", "Strength"],
+  goals: ["Competition", "Strength"],
   benchmarks: {
     fran: "4:32",
     grace: "3:15",

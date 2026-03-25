@@ -1,10 +1,10 @@
 import { Users, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 
 const stats = [
-  { label: "Totaal Atleten", value: "24", icon: Users, color: "text-primary" },
-  { label: "Limiters Geïdentificeerd", value: "18", icon: AlertTriangle, color: "text-accent" },
-  { label: "Progressie (gem.)", value: "+4.2", icon: TrendingUp, color: "text-success" },
-  { label: "Stagnatie", value: "3", icon: TrendingDown, color: "text-destructive" },
+  { label: "Total Athletes", value: "24", icon: Users, color: "text-primary" },
+  { label: "Limiters Identified", value: "18", icon: AlertTriangle, color: "text-accent" },
+  { label: "Avg. Progress", value: "+4.2", icon: TrendingUp, color: "text-success" },
+  { label: "Stagnating", value: "3", icon: TrendingDown, color: "text-destructive" },
 ];
 
 const CoachStats = () => {
