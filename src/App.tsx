@@ -8,6 +8,8 @@ import Index from "./pages/Index.tsx";
 import AthleteDashboard from "./pages/AthleteDashboard.tsx";
 import AthleteOnboarding from "./pages/AthleteOnboarding.tsx";
 import CoachDashboard from "./pages/CoachDashboard.tsx";
+import AIChatPage from "./pages/AIChatPage.tsx";
+import WorkoutStrategy from "./pages/WorkoutStrategy.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
             <Route path="/onboarding" element={<AthleteOnboarding />} />
             <Route path="/athlete" element={<AthleteDashboard />} />
             <Route path="/coach" element={<CoachDashboard />} />
+            <Route path="/chat" element={<AIChatPage />} />
+            <Route path="/strategy" element={<WorkoutStrategy />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
