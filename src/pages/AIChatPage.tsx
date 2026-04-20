@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Bot, User, Sparkles } from "lucide-react";
 import { useAthlete } from "@/contexts/AthleteContext";
+import { toast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -18,28 +20,7 @@ const suggestedQuestions = [
   "What's limiting my performance?",
 ];
 
-const generateAIResponse = (userMessage: string, profile: ReturnType<typeof useAthlete>["profile"]): string => {
-  const msg = userMessage.toLowerCase();
-
-  if (msg.includes("focus") || msg.includes("priority")) {
-    return `Based on your profile, ${profile.name}, your primary limiter is **Gymnastics** (especially muscle-ups at ${profile.gymnastics.maxMuscleUps} reps and HSPUs at ${profile.gymnastics.maxHSPU} reps). I recommend:\n\n1. **3x/week strict pulling work** — 4x6 strict pull-ups, 3x8 ring rows\n2. **2x/week HSPU progressions** — pike push-ups → wall walks → negatives\n3. **Daily 5-min skill practice** — kipping drills or double under practice (currently at ${profile.gymnastics.maxDoubleUnders})\n\nThis should be your #1 focus for the next 4-6 weeks before moving to your secondary limiter (Mobility).`;
-  }
-
-  if (msg.includes("fran") || msg.includes("time")) {
-    const franTime = profile.benchmarks.fran || "unknown";
-    return `Your current Fran time is **${franTime}**. To improve it:\n\n1. **Thrusters**: Your clean & jerk is ${profile.maxLifts.cleanAndJerk}kg — the 43kg thruster should feel light. Focus on cycling speed with 3x15 light thrusters for time.\n2. **Pull-ups**: With ${profile.gymnastics.maxPullups} unbroken, you need sets of 21-15-9 without breaking. Work on kipping efficiency.\n3. **Strategy**: Go unbroken on the 21s, break the 15s into 8-7, send the 9s.\n\n🎯 Predicted improvement in 8 weeks: **-25 to -40 seconds**`;
-  }
-
-  if (msg.includes("strength") || msg.includes("program")) {
-    return `Here's a personalized strength block based on your numbers:\n\n**Back Squat** (current: ${profile.maxLifts.backSquat}kg)\n- Week 1-3: 5x5 @ 75% (${Math.round(profile.maxLifts.backSquat * 0.75)}kg)\n- Week 4-6: 5x3 @ 85% (${Math.round(profile.maxLifts.backSquat * 0.85)}kg)\n\n**Deadlift** (current: ${profile.maxLifts.deadlift}kg)\n- Week 1-3: 5x5 @ 70% (${Math.round(profile.maxLifts.deadlift * 0.7)}kg)\n- Week 4-6: 5x3 @ 82% (${Math.round(profile.maxLifts.deadlift * 0.82)}kg)\n\n**Clean & Jerk** (current: ${profile.maxLifts.cleanAndJerk}kg)\n- 3x/week technique work at 60-70%\n\n📈 Expected 1RM gains in 6 weeks: **+5-8%**`;
-  }
-
-  if (msg.includes("limit") || msg.includes("weak")) {
-    return `Let me break down your limiters, ${profile.name}:\n\n🔴 **Primary: Gymnastics** — Score: 45/100\n- Muscle-ups: ${profile.gymnastics.maxMuscleUps} (needs work)\n- HSPUs: ${profile.gymnastics.maxHSPU} (below average for ${profile.experience})\n- This is costing you the most time in metcons\n\n🟡 **Secondary: Mobility** — Score: 55/100\n- Affects your overhead positions and Olympic lifts\n- Your snatch (${profile.maxLifts.snatch}kg) is limited by position, not strength\n\n🟢 **Strength: Engine** — Score: 78/100\n- Your endurance is strong, keep maintaining with 1-2 long aerobic sessions/week`;
-  }
-
-  return `Great question! Based on your profile as a${profile.experience === "intermediate" ? "n" : ""} **${profile.experience}** athlete at **${profile.box}**, here are my thoughts:\n\nYour overall score is **72/100**, with your biggest opportunity in gymnastics. Your engine (78/100) and endurance are solid foundations.\n\nWant me to dive deeper into any specific area? I can help with:\n- 🏋️ Strength programming\n- 🤸 Gymnastics progressions\n- 🏃 Engine development\n- 📊 WOD strategy`;
-};
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 const AIChatPage = () => {
   const { profile } = useAthlete();
@@ -51,7 +32,7 @@ const AIChatPage = () => {
     },
   ]);
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,20 +40,115 @@ const AIChatPage = () => {
   }, [messages]);
 
   const sendMessage = async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || isStreaming) return;
 
     const userMsg: Message = { id: Date.now().toString(), role: "user", content };
-    setMessages((prev) => [...prev, userMsg]);
+    const history = [...messages, userMsg];
+    setMessages(history);
     setInput("");
-    setIsTyping(true);
+    setIsStreaming(true);
 
-    // Simulate AI thinking time
-    await new Promise((r) => setTimeout(r, 1000 + Math.random() * 1500));
+    let assistantContent = "";
+    const assistantId = (Date.now() + 1).toString();
 
-    const response = generateAIResponse(content, profile);
-    const aiMsg: Message = { id: (Date.now() + 1).toString(), role: "assistant", content: response };
-    setMessages((prev) => [...prev, aiMsg]);
-    setIsTyping(false);
+    const upsertAssistant = (chunk: string) => {
+      assistantContent += chunk;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.id === assistantId) {
+          return prev.map((m) =>
+            m.id === assistantId ? { ...m, content: assistantContent } : m,
+          );
+        }
+        return [...prev, { id: assistantId, role: "assistant", content: assistantContent }];
+      });
+    };
+
+    try {
+      const apiMessages = history
+        .filter((m) => m.id !== "welcome")
+        .map(({ role, content }) => ({ role, content }));
+
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: apiMessages, profile }),
+      });
+
+      if (!resp.ok || !resp.body) {
+        if (resp.status === 429) {
+          toast({ title: "Rate limit", description: "Too many requests, please wait a moment.", variant: "destructive" });
+        } else if (resp.status === 402) {
+          toast({ title: "Credits exhausted", description: "Please add AI credits to your workspace.", variant: "destructive" });
+        } else {
+          toast({ title: "Error", description: "Could not reach AI buddy.", variant: "destructive" });
+        }
+        setIsStreaming(false);
+        return;
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const delta = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (delta) upsertAssistant(delta);
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (raw.startsWith(":") || raw.trim() === "") continue;
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const delta = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (delta) upsertAssistant(delta);
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Streaming error:", err);
+      toast({ title: "Connection error", description: "Lost connection to AI buddy.", variant: "destructive" });
+    } finally {
+      setIsStreaming(false);
+    }
   };
 
   return (
@@ -112,12 +188,18 @@ const AIChatPage = () => {
                     ? "bg-gradient-card border border-border"
                     : "bg-primary/10 border border-primary/20"
                 }`}>
-                  <p className="text-sm whitespace-pre-line leading-relaxed">{msg.content}</p>
+                  {msg.role === "assistant" ? (
+                    <div className="prose prose-sm prose-invert max-w-none text-sm leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_strong]:text-foreground [&_strong]:font-semibold">
+                      <ReactMarkdown>{msg.content || "…"}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="text-sm whitespace-pre-line leading-relaxed">{msg.content}</p>
+                  )}
                 </div>
               </div>
             ))}
 
-            {isTyping && (
+            {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
                   <Sparkles className="w-4 h-4 text-primary" />
@@ -168,11 +250,11 @@ const AIChatPage = () => {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about your training..."
                 className="flex-1"
-                disabled={isTyping}
+                disabled={isStreaming}
               />
               <Button
                 type="submit"
-                disabled={!input.trim() || isTyping}
+                disabled={!input.trim() || isStreaming}
                 className="bg-gradient-fire hover:opacity-90 px-4"
               >
                 <Send className="w-4 h-4" />
