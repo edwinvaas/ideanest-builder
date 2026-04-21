@@ -16,7 +16,22 @@ interface AthleteProfile {
   gymnastics: Record<string, number>;
 }
 
-const buildSystemPrompt = (profile: AthleteProfile) => `You are an elite CrossFit coach and AI training buddy. You give personalized, actionable advice based on the athlete's profile and benchmark data. Be concise, motivating, and practical. Use markdown formatting (bold, lists) and emojis where appropriate.
+interface BoxAthlete {
+  name: string;
+  score: number;
+  limiter: string;
+  trend: string;
+  status: string;
+}
+
+interface ClassContext {
+  type?: string;
+  duration?: string;
+  attendees?: string[];
+  notes?: string;
+}
+
+const buildAthletePrompt = (profile: AthleteProfile) => `You are an elite CrossFit coach and AI training buddy. You give personalized, actionable advice based on the athlete's profile and benchmark data. Be concise, motivating, and practical. Use markdown formatting (bold, lists) and emojis where appropriate.
 
 ATHLETE PROFILE:
 - Name: ${profile.name}
@@ -47,13 +62,59 @@ GYMNASTICS (max unbroken):
 
 Always reference specific numbers from this profile when giving advice. If asked for a program, give concrete sets/reps with weights based on their maxes (e.g., percentages of their actual lifts). Identify limiters honestly.`;
 
+const buildCoachPrompt = (roster: BoxAthlete[], classCtx?: ClassContext) => {
+  const attending = classCtx?.attendees?.length
+    ? roster.filter((a) => classCtx.attendees!.includes(a.name))
+    : roster;
+
+  const limiterCounts = attending.reduce<Record<string, number>>((acc, a) => {
+    acc[a.limiter] = (acc[a.limiter] || 0) + 1;
+    return acc;
+  }, {});
+  const avgScore = attending.length
+    ? Math.round(attending.reduce((s, a) => s + a.score, 0) / attending.length)
+    : 0;
+  const stagnating = attending.filter((a) => a.status === "stagnating").length;
+
+  return `You are an elite CrossFit head coach AI assistant helping a coach run better classes. You give practical, actionable coaching advice for managing classes, programming focus, scaling options, and individual athlete attention. Be concise and structured. Use markdown (bold, lists) and emojis where appropriate.
+
+CLASS CONTEXT:
+- Class type: ${classCtx?.type || "General CrossFit class"}
+- Duration: ${classCtx?.duration || "60 min"}
+- Attendees: ${attending.length} athletes
+- Average performance score: ${avgScore}/100
+- Athletes currently stagnating: ${stagnating}
+- Coach notes: ${classCtx?.notes || "none"}
+
+LIMITER DISTRIBUTION (most common weaknesses in this class):
+${Object.entries(limiterCounts)
+  .sort((a, b) => b[1] - a[1])
+  .map(([k, v]) => `- ${k}: ${v} athlete${v > 1 ? "s" : ""}`)
+  .join("\n")}
+
+ATHLETES IN THIS CLASS:
+${attending
+  .map(
+    (a) =>
+      `- ${a.name} | score ${a.score}/100 | limiter: ${a.limiter} | trend ${a.trend} | ${a.status}`,
+  )
+  .join("\n")}
+
+When the coach asks where to focus, recommend:
+1. Primary skill/strength focus based on the most common limiter in the room
+2. Suggested scaling tiers (RX / Intermediate / Beginner) with specific weights and rep schemes
+3. 1-2 athletes to give extra attention to (call them out by name with WHY)
+4. A quick coaching cue or warm-up that targets the dominant limiter
+Always reference specific athletes by name and use the data above. If asked for a workout, write the full WOD with scaling.`;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, profile } = await req.json();
+    const { messages, profile, mode, roster, classContext } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -64,9 +125,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    const systemPrompt = profile
-      ? buildSystemPrompt(profile)
-      : "You are a helpful CrossFit coach AI assistant.";
+    let systemPrompt = "You are a helpful CrossFit coach AI assistant.";
+    if (mode === "coach" && Array.isArray(roster)) {
+      systemPrompt = buildCoachPrompt(roster, classContext);
+    } else if (profile) {
+      systemPrompt = buildAthletePrompt(profile);
+    }
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
