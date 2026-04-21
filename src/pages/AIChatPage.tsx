@@ -279,32 +279,67 @@ const AIChatPage = () => {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-6 py-6 max-w-3xl space-y-6">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                  msg.role === "assistant" ? "bg-primary/20" : "bg-secondary"
-                }`}>
-                  {msg.role === "assistant" ? (
-                    <Sparkles className="w-4 h-4 text-primary" />
-                  ) : (
-                    <User className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
-                <div className={`rounded-xl px-4 py-3 max-w-[80%] ${
-                  msg.role === "assistant"
-                    ? "bg-gradient-card border border-border"
-                    : "bg-primary/10 border border-primary/20"
-                }`}>
-                  {msg.role === "assistant" ? (
-                    <div className="prose prose-sm prose-invert max-w-none text-sm leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_strong]:text-foreground [&_strong]:font-semibold">
-                      <ReactMarkdown>{msg.content || "…"}</ReactMarkdown>
+            {messages.map((msg, idx) => {
+              const isLast = idx === messages.length - 1;
+              const { visible, followups } = msg.role === "assistant"
+                ? parseFollowups(msg.content)
+                : { visible: msg.content, followups: [] as string[] };
+              const showFollowups =
+                msg.role === "assistant" &&
+                isLast &&
+                !isStreaming &&
+                followups.length > 0;
+
+              return (
+                <div key={msg.id} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                    msg.role === "assistant" ? "bg-primary/20" : "bg-secondary"
+                  }`}>
+                    {msg.role === "assistant" ? (
+                      <Sparkles className="w-4 h-4 text-primary" />
+                    ) : (
+                      <User className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-3 max-w-[80%]">
+                    <div className={`rounded-xl px-4 py-3 ${
+                      msg.role === "assistant"
+                        ? "bg-gradient-card border border-border"
+                        : "bg-primary/10 border border-primary/20"
+                    }`}>
+                      {msg.role === "assistant" ? (
+                        <div className="prose prose-sm prose-invert max-w-none text-sm leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_strong]:text-foreground [&_strong]:font-semibold">
+                          <ReactMarkdown>{visible || "…"}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="text-sm whitespace-pre-line leading-relaxed">{msg.content}</p>
+                      )}
                     </div>
-                  ) : (
-                    <p className="text-sm whitespace-pre-line leading-relaxed">{msg.content}</p>
-                  )}
+
+                    {showFollowups && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                          <Sparkles className="w-3 h-3 text-primary" />
+                          Suggested next questions
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {followups.map((q) => (
+                            <button
+                              key={q}
+                              onClick={() => sendMessage(q)}
+                              disabled={isStreaming}
+                              className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary/60 text-foreground hover:bg-primary/20 hover:text-primary border border-border hover:border-primary/40 transition-colors text-left disabled:opacity-50"
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex gap-3">
@@ -325,9 +360,13 @@ const AIChatPage = () => {
           </div>
         </div>
 
-        {/* Suggestions */}
+        {/* Initial suggestions (only on welcome screen) */}
         {messages.length <= 1 && (
           <div className="container mx-auto px-6 max-w-3xl pb-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2 flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-primary" />
+              Try asking
+            </p>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((q) => (
                 <button
