@@ -33,6 +33,26 @@ const coachSuggestions = [
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
+// Parse the AI's hidden <followups> block out of the response.
+// Returns the visible content (block stripped) and the list of suggestions.
+const parseFollowups = (raw: string): { visible: string; followups: string[] } => {
+  // Match a complete block first; if streaming hasn't closed it yet, hide the partial open tag.
+  const closed = raw.match(/<followups>([\s\S]*?)<\/followups>/i);
+  if (closed) {
+    const visible = raw.replace(closed[0], "").trimEnd();
+    const followups = closed[1]
+      .split("\n")
+      .map((l) => l.replace(/^[-*\d.\s]+/, "").trim())
+      .filter((l) => l.length > 0 && l.length < 200);
+    return { visible, followups };
+  }
+  const openIdx = raw.search(/<followups>/i);
+  if (openIdx !== -1) {
+    return { visible: raw.slice(0, openIdx).trimEnd(), followups: [] };
+  }
+  return { visible: raw, followups: [] };
+};
+
 const buildWelcome = (mode: Mode, name: string) =>
   mode === "athlete"
     ? `Hey ${name || "Athlete"}! 👋 I'm your AI training buddy. I know your profile, benchmarks, and performance data. Ask me anything about your training — from workout strategy to identifying your limiters. What would you like to work on?`
