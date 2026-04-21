@@ -3,9 +3,11 @@ import ReactMarkdown from "react-markdown";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, Dumbbell, Users } from "lucide-react";
 import { useAthlete } from "@/contexts/AthleteContext";
 import { toast } from "@/hooks/use-toast";
+import { boxAthletes } from "@/data/athletes";
+import { cn } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -13,23 +15,37 @@ interface Message {
   content: string;
 }
 
-const suggestedQuestions = [
+type Mode = "athlete" | "coach";
+
+const athleteSuggestions = [
   "What should I focus on this week?",
   "How can I improve my Fran time?",
   "Create a strength program for me",
   "What's limiting my performance?",
 ];
 
+const coachSuggestions = [
+  "Where should I focus today's class?",
+  "Which athletes need extra attention?",
+  "Suggest scaling options for today's WOD",
+  "Design a class targeting our top limiter",
+];
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+
+const buildWelcome = (mode: Mode, name: string) =>
+  mode === "athlete"
+    ? `Hey ${name || "Athlete"}! 👋 I'm your AI training buddy. I know your profile, benchmarks, and performance data. Ask me anything about your training — from workout strategy to identifying your limiters. What would you like to work on?`
+    : `Hey Coach! 👋 I've got the full roster of your box loaded — ${boxAthletes.length} athletes with their scores, limiters, and trends. Tell me about today's class (type, focus, who's attending) and I'll help you decide where to put the focus, which athletes to watch, and how to scale.`;
 
 const AIChatPage = () => {
   const { profile } = useAthlete();
+  const [mode, setMode] = useState<Mode>("athlete");
+  const [classType, setClassType] = useState("Conditioning + Strength");
+  const [classDuration, setClassDuration] = useState("60 min");
+  const [classNotes, setClassNotes] = useState("");
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: `Hey ${profile.name || "Athlete"}! 👋 I'm your AI training buddy. I know your profile, benchmarks, and performance data. Ask me anything about your training — from workout strategy to identifying your limiters. What would you like to work on?`,
-    },
+    { id: "welcome", role: "assistant", content: buildWelcome("athlete", profile.name) },
   ]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -38,6 +54,14 @@ const AIChatPage = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const switchMode = (next: Mode) => {
+    if (next === mode || isStreaming) return;
+    setMode(next);
+    setMessages([
+      { id: "welcome", role: "assistant", content: buildWelcome(next, profile.name) },
+    ]);
+  };
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isStreaming) return;
@@ -69,13 +93,27 @@ const AIChatPage = () => {
         .filter((m) => m.id !== "welcome")
         .map(({ role, content }) => ({ role, content }));
 
+      const body =
+        mode === "athlete"
+          ? { messages: apiMessages, mode, profile }
+          : {
+              messages: apiMessages,
+              mode,
+              roster: boxAthletes,
+              classContext: {
+                type: classType,
+                duration: classDuration,
+                notes: classNotes,
+              },
+            };
+
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages, profile }),
+        body: JSON.stringify(body),
       });
 
       if (!resp.ok || !resp.body) {
@@ -151,22 +189,91 @@ const AIChatPage = () => {
     }
   };
 
+  const suggestions = mode === "athlete" ? athleteSuggestions : coachSuggestions;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <div className="flex-1 pt-16 flex flex-col">
         <div className="border-b border-border bg-gradient-card">
-          <div className="container mx-auto px-6 py-4">
+          <div className="container mx-auto px-6 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-fire flex items-center justify-center">
                 <Bot className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
                 <h1 className="font-display font-bold text-lg">AI Training Buddy</h1>
-                <p className="text-xs text-muted-foreground">Personalized coaching powered by your data</p>
+                <p className="text-xs text-muted-foreground">
+                  {mode === "athlete"
+                    ? "Personalized coaching powered by your data"
+                    : "Class management coach for your box"}
+                </p>
               </div>
             </div>
+
+            {/* Mode toggle */}
+            <div className="inline-flex items-center bg-secondary rounded-lg p-1 border border-border self-start md:self-auto">
+              <button
+                onClick={() => switchMode("athlete")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                  mode === "athlete"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Dumbbell className="w-3.5 h-3.5" />
+                Athlete
+              </button>
+              <button
+                onClick={() => switchMode("coach")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                  mode === "coach"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Users className="w-3.5 h-3.5" />
+                Coach
+              </button>
+            </div>
           </div>
+
+          {/* Coach class context */}
+          {mode === "coach" && (
+            <div className="border-t border-border bg-background/40">
+              <div className="container mx-auto px-6 py-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Class type</label>
+                  <Input
+                    value={classType}
+                    onChange={(e) => setClassType(e.target.value)}
+                    placeholder="e.g. Strength + Metcon"
+                    className="h-8 text-sm mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Duration</label>
+                  <Input
+                    value={classDuration}
+                    onChange={(e) => setClassDuration(e.target.value)}
+                    placeholder="60 min"
+                    className="h-8 text-sm mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Notes</label>
+                  <Input
+                    value={classNotes}
+                    onChange={(e) => setClassNotes(e.target.value)}
+                    placeholder="e.g. open gym, comp prep, beginners present"
+                    className="h-8 text-sm mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Messages */}
@@ -222,7 +329,7 @@ const AIChatPage = () => {
         {messages.length <= 1 && (
           <div className="container mx-auto px-6 max-w-3xl pb-4">
             <div className="flex flex-wrap gap-2">
-              {suggestedQuestions.map((q) => (
+              {suggestions.map((q) => (
                 <button
                   key={q}
                   onClick={() => sendMessage(q)}
@@ -248,7 +355,7 @@ const AIChatPage = () => {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about your training..."
+                placeholder={mode === "athlete" ? "Ask about your training..." : "Ask about your class..."}
                 className="flex-1"
                 disabled={isStreaming}
               />
