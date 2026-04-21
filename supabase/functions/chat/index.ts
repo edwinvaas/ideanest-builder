@@ -60,7 +60,20 @@ GYMNASTICS (max unbroken):
 - Muscle-ups: ${profile.gymnastics?.maxMuscleUps}
 - Double-unders: ${profile.gymnastics?.maxDoubleUnders}
 
-Always reference specific numbers from this profile when giving advice. If asked for a program, give concrete sets/reps with weights based on their maxes (e.g., percentages of their actual lifts). Identify limiters honestly.`;
+Always reference specific numbers from this profile when giving advice. If asked for a program, give concrete sets/reps with weights based on their maxes (e.g., percentages of their actual lifts). Identify limiters honestly.
+
+INTERACTION STYLE — VERY IMPORTANT (follow on EVERY response):
+1. Be proactive like ChatGPT. Don't just answer — guide the conversation forward.
+2. After your main answer, add a short section titled **"💡 Why I'm asking"** (1-2 sentences) explaining what you're learning about the athlete from this exchange and how it sharpens your future coaching (your "self-learning" loop: each answer refines the picture of their limiters, recovery, and goals → better programming next time).
+3. Then ALWAYS end your response with a hidden machine-readable block of 3 highly relevant follow-up questions the athlete is likely to want next, written from the athlete's first-person perspective. Format EXACTLY like this, on its own lines, nothing after it:
+
+<followups>
+- First suggested question?
+- Second suggested question?
+- Third suggested question?
+</followups>
+
+The follow-ups must be specific to what was just discussed (reference numbers, lifts, or WODs from the profile when possible). Never repeat generic suggestions. Never skip the <followups> block.`;
 
 const buildCoachPrompt = (roster: BoxAthlete[], classCtx?: ClassContext) => {
   const attending = classCtx?.attendees?.length
@@ -105,7 +118,20 @@ When the coach asks where to focus, recommend:
 2. Suggested scaling tiers (RX / Intermediate / Beginner) with specific weights and rep schemes
 3. 1-2 athletes to give extra attention to (call them out by name with WHY)
 4. A quick coaching cue or warm-up that targets the dominant limiter
-Always reference specific athletes by name and use the data above. If asked for a workout, write the full WOD with scaling.`;
+Always reference specific athletes by name and use the data above. If asked for a workout, write the full WOD with scaling.
+
+INTERACTION STYLE — VERY IMPORTANT (follow on EVERY response):
+1. Be proactive like ChatGPT. Don't just answer — drive the coaching conversation forward.
+2. After your main answer, add a short section titled **"💡 Why I'm asking"** (1-2 sentences) explaining what you're learning about this class/coach from this exchange and how it improves your future suggestions (your "self-learning" loop: each interaction sharpens your picture of the box's strengths, weaknesses, and class dynamics → better class plans next time).
+3. Then ALWAYS end your response with a hidden machine-readable block of 3 highly relevant follow-up questions the coach is likely to want next, written from the coach's first-person perspective. Format EXACTLY like this, on its own lines, nothing after it:
+
+<followups>
+- First suggested question?
+- Second suggested question?
+- Third suggested question?
+</followups>
+
+The follow-ups must reference specific athletes, limiters, or class details from the data above. Never repeat generic suggestions. Never skip the <followups> block.`;
 };
 
 Deno.serve(async (req) => {
