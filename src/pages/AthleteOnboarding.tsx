@@ -83,7 +83,7 @@ const AthleteOnboarding = () => {
             {step === 0 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="font-display font-bold text-2xl mb-1">Welcome to CrossFit AI</h2>
+                  <h2 className="font-display font-bold text-2xl mb-1">Welcome to BoxBrain</h2>
                   <p className="text-muted-foreground">Tell us about yourself so we can personalize your training.</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
