@@ -17,7 +17,9 @@ const Hero = () => {
         <div className="animate-slide-up max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 mb-8">
             <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">BoxBrain · AI-Powered Performance</span>
+            <span className="text-sm font-medium text-primary">
+              Built for CrossFit box owners &amp; coaches
+            </span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight mb-6">
@@ -27,27 +29,31 @@ const Hero = () => {
             </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            The AI performance assistant that helps CrossFit athletes and coaches
-            know exactly where to focus to improve faster.
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 leading-relaxed">
+            An AI performance assistant that tells your athletes exactly where
+            to focus — and gives you, the coach, the data and prioritization to
+            run better classes in less time.
+          </p>
+          <p className="text-sm text-muted-foreground/80 max-w-xl mx-auto mb-10 italic">
+            From data → to one concrete next action. For every athlete in your box.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
               className="bg-gradient-fire text-primary-foreground font-display font-semibold text-lg px-8 py-6 shadow-glow hover:opacity-90 transition-opacity"
-              onClick={() => navigate("/onboarding")}
+              onClick={() => navigate("/coach")}
             >
-              View Athlete Demo
+              See the coach dashboard
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="font-display font-semibold text-lg px-8 py-6 border-border hover:bg-secondary"
-              onClick={() => navigate("/coach")}
+              onClick={() => navigate("/onboarding")}
             >
-              Coach Dashboard
+              Try the athlete demo
             </Button>
           </div>
         </div>
