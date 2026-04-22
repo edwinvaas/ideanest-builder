@@ -6,58 +6,105 @@
 
 @layer base {
   :root {
-    --background: 220 20% 6%;
-    --foreground: 0 0% 95%;
+    --background: 215 30% 97%;
+    --foreground: 215 30% 15%;
 
-    --card: 220 18% 10%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 30% 15%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 30% 15%;
 
-    --primary: 12 90% 55%;
+    --primary: 215 40% 30%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 16%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 215 20% 92%;
+    --secondary-foreground: 215 30% 20%;
 
-    --muted: 220 15% 14%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 215 20% 94%;
+    --muted-foreground: 215 15% 45%;
 
-    --accent: 45 100% 55%;
-    --accent-foreground: 220 20% 6%;
+    --accent: 22 90% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 18%;
-    --ring: 12 90% 55%;
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 215 40% 30%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 220 18% 8%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 12 90% 55%;
+    --sidebar-background: 215 25% 96%;
+    --sidebar-foreground: 215 30% 20%;
+    --sidebar-primary: 215 40% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 14%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 12 90% 55%;
+    --sidebar-accent: 215 20% 92%;
+    --sidebar-accent-foreground: 215 30% 20%;
+    --sidebar-border: 215 20% 88%;
+    --sidebar-ring: 215 40% 30%;
 
     /* Custom tokens */
-    --gradient-fire: linear-gradient(135deg, hsl(12, 90%, 55%), hsl(35, 100%, 55%));
-    --gradient-dark: linear-gradient(180deg, hsl(220, 20%, 8%), hsl(220, 20%, 4%));
-    --gradient-card: linear-gradient(135deg, hsl(220, 18%, 12%), hsl(220, 18%, 8%));
-    --shadow-glow: 0 0 40px hsl(12, 90%, 55%, 0.15);
+    --gradient-fire: linear-gradient(135deg, hsl(22, 90%, 55%), hsl(32, 95%, 60%));
+    --gradient-dark: linear-gradient(180deg, hsl(215, 30%, 97%), hsl(215, 25%, 93%));
+    --gradient-card: linear-gradient(135deg, hsl(0, 0%, 100%), hsl(215, 25%, 96%));
+    --shadow-glow: 0 0 40px hsl(22, 90%, 55%, 0.12);
+    --shadow-card: 0 2px 12px hsl(215, 30%, 30%, 0.08);
+
+    --success: 145 55% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 35 90% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 210 70% 45%;
+    --info-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 215 30% 8%;
+    --foreground: 215 15% 92%;
+
+    --card: 215 28% 12%;
+    --card-foreground: 215 15% 92%;
+
+    --popover: 215 28% 12%;
+    --popover-foreground: 215 15% 92%;
+
+    --primary: 210 70% 60%;
+    --primary-foreground: 215 30% 8%;
+
+    --secondary: 215 25% 18%;
+    --secondary-foreground: 215 15% 88%;
+
+    --muted: 215 25% 16%;
+    --muted-foreground: 215 15% 60%;
+
+    --accent: 22 90% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 25% 20%;
+    --input: 215 25% 20%;
+    --ring: 210 70% 60%;
+
+    --sidebar-background: 215 30% 10%;
+    --sidebar-foreground: 215 15% 88%;
+    --sidebar-primary: 210 70% 60%;
+    --sidebar-primary-foreground: 215 30% 8%;
+    --sidebar-accent: 215 25% 16%;
+    --sidebar-accent-foreground: 215 15% 88%;
+    --sidebar-border: 215 25% 20%;
+    --sidebar-ring: 210 70% 60%;
+
+    --gradient-dark: linear-gradient(180deg, hsl(215, 30%, 10%), hsl(215, 30%, 6%));
+    --gradient-card: linear-gradient(135deg, hsl(215, 28%, 14%), hsl(215, 28%, 10%));
     --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.3);
 
-    --success: 145 70% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 45 100% 55%;
-    --warning-foreground: 220 20% 6%;
-    --info: 210 80% 55%;
-    --info-foreground: 0 0% 100%;
+    --success: 145 55% 50%;
+    --warning: 35 90% 55%;
+    --info: 210 70% 55%;
   }
 }
 
