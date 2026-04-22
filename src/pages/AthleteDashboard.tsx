@@ -3,6 +3,8 @@ import PerformanceRadar from "@/components/athlete/PerformanceRadar";
 import LimiterCard from "@/components/athlete/LimiterCard";
 import MetricCards from "@/components/athlete/MetricCards";
 import AdviceSection from "@/components/athlete/AdviceSection";
+import { Button } from "@/components/ui/button";
+import { Target, ArrowRight } from "lucide-react";
 import { useAthlete } from "@/contexts/AthleteContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
