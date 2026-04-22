@@ -22,7 +22,9 @@ const Hero = () => {
 
           <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight mb-6">
             BoxBrain
-            <span className="text-gradient-fire block mt-2">The intelligence behind better performance.</span>
+            <span className="block mt-4 text-2xl md:text-3xl font-display font-medium italic text-gradient-fire tracking-normal">
+              The intelligence behind better performance.
+            </span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
