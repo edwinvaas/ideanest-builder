@@ -17,17 +17,17 @@ const Hero = () => {
         <div className="animate-slide-up max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 mb-8">
             <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">AI-Powered Performance</span>
+            <span className="text-sm font-medium text-primary">BoxBrain · AI-Powered Performance</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight mb-6">
-            Know where to
-            <span className="text-gradient-fire block mt-2">focus.</span>
+            BoxBrain
+            <span className="text-gradient-fire block mt-2">The intelligence behind better performance.</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            The AI performance assistant that helps CrossFit athletes determine
-            where to focus to improve faster.
+            The AI performance assistant that helps CrossFit athletes and coaches
+            know exactly where to focus to improve faster.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

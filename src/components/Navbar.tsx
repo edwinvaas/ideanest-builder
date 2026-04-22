@@ -20,7 +20,10 @@ const Navbar = () => {
           <div className="w-8 h-8 rounded-lg bg-gradient-fire flex items-center justify-center">
             <Zap className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-display font-bold text-lg">CrossFit AI</span>
+          <div className="flex flex-col leading-none">
+            <span className="font-display font-bold text-lg">BoxBrain</span>
+            <span className="text-[10px] text-muted-foreground hidden sm:block">The intelligence behind better performance</span>
+          </div>
         </Link>
 
         <div className="flex items-center gap-1">
