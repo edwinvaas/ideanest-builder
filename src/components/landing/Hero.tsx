@@ -29,11 +29,6 @@ const Hero = () => {
             </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 leading-relaxed">
-            An AI performance assistant that tells your athletes exactly where
-            to focus — and gives you, the coach, the data and prioritization to
-            run better classes in less time.
-          </p>
           <p className="text-sm text-muted-foreground/80 max-w-xl mx-auto mb-10 italic">
             From data → to one concrete next action. For every athlete in your box.
           </p>
