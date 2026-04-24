@@ -3,6 +3,7 @@ import PerformanceRadar from "@/components/athlete/PerformanceRadar";
 import LimiterCard from "@/components/athlete/LimiterCard";
 import MetricCards from "@/components/athlete/MetricCards";
 import AdviceSection from "@/components/athlete/AdviceSection";
+import RoleBadge from "@/components/RoleBadge";
 import { Button } from "@/components/ui/button";
 import { Target, ArrowRight } from "lucide-react";
 import { useAthlete } from "@/contexts/AthleteContext";
@@ -20,8 +21,14 @@ const AthleteDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      {/* Subtle warm accent strip — visual cue this is the Athlete zone */}
+      <div className="fixed top-16 left-0 right-0 h-0.5 bg-gradient-fire z-40 opacity-70" />
       <div className="pt-24 pb-16">
         <div className="container mx-auto px-6">
+          <RoleBadge
+            role="athlete"
+            hint="Your personal view — what to focus on today and how to approach it."
+          />
           <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
