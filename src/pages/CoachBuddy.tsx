@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import RoleBadge from "@/components/RoleBadge";
 import { Input } from "@/components/ui/input";
 import { BuddyChat } from "@/components/buddy/BuddyChat";
 import { COACH_BUDDY } from "@/lib/buddyConfig";
@@ -33,6 +34,11 @@ Set today's class context above, then ask me anything.`,
   const contextSlot = (
     <div className="border-t border-border bg-background/40">
       <div className="container mx-auto px-6 py-3 space-y-3">
+        <RoleBadge
+          role="coach"
+          hint="Use this to set pacing cues, scaling tiers and watch-list for the class below."
+          className="mb-1"
+        />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">

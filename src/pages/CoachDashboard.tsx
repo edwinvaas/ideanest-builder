@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import AthleteTable from "@/components/coach/AthleteTable";
 import CoachStats from "@/components/coach/CoachStats";
+import RoleBadge from "@/components/RoleBadge";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +13,10 @@ const CoachDashboard = () => {
       <Navbar />
       <div className="pt-24 pb-16">
         <div className="container mx-auto px-6">
+          <RoleBadge
+            role="coach"
+            hint="Decisions view — group readiness, dominant limiters and pacing cues for your class."
+          />
           <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
