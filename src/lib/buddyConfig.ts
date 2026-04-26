@@ -26,13 +26,13 @@ export const ATHLETE_BUDDY: BuddyConfig = {
   initialSuggestions: [
     "What is my single biggest limiter right now?",
     "Where should I focus this week to improve fastest?",
-    "How do I bring my Fran time under 4:00?",
-    "Build me a 4-week plan to fix my weakness",
+    "Give me a WOD strategy and what feedback you need after",
+    "I finished the workout — here’s how the pacing felt",
   ],
   emptyStateBullets: [
     "Identifies your weakest link from your profile",
     "Turns data into a concrete next action",
-    "Adapts as your numbers change",
+    "Learns from your post-workout feedback",
   ],
   inputPlaceholder: "Ask Focus about your training...",
   ctaLabel: "Talk to Focus",
@@ -49,13 +49,13 @@ export const COACH_BUDDY: BuddyConfig = {
   initialSuggestions: [
     "Which 3 athletes in today's class need extra attention?",
     "What is the dominant limiter in my box right now?",
-    "Plan today's class around our biggest team weakness",
-    "Who is stagnating and what should I do about it?",
+    "Plan today's class and tell me what feedback to collect after",
+    "Class is done — here’s what I observed",
   ],
   emptyStateBullets: [
     "Highlights the right athletes before each class",
     "Recommends focus, scaling and cues per session",
-    "Spots stagnation before you do",
+    "Improves from post-class coach feedback",
   ],
   inputPlaceholder: "Ask Command about your class or roster...",
   ctaLabel: "Talk to Command",
