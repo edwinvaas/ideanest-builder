@@ -36,7 +36,7 @@ Set today's class context above, then ask me anything.`,
       <div className="container mx-auto px-6 py-3 space-y-3">
         <RoleBadge
           role="coach"
-          hint="Use this to set pacing cues, scaling tiers and watch-list for the class below."
+          hint="Use this to set pacing cues, scaling tiers and watch-list. After class, share what happened so Command can sharpen future plans."
           className="mb-1"
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

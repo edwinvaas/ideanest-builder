@@ -18,7 +18,7 @@ Ask me anything — or pick a starting point below.`;
       <div className="container mx-auto px-6 py-3">
         <RoleBadge
           role="athlete"
-          hint="This is how to approach today's training — personal focus, not team comparisons."
+          hint="This is how to approach today's training. After your workout, tell Focus how the strategy felt so your next advice gets sharper."
           className="mb-0"
         />
       </div>
