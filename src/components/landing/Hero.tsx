@@ -29,7 +29,7 @@ const Hero = () => {
             </span>
           </h1>
 
-          <p className="text-sm text-muted-foreground/80 max-w-xl mx-auto mb-10 italic">
+          <p className="text-center text-sm font-display italic text-muted-foreground/80 max-w-xl mx-auto mb-10">
             From data → to one concrete next action. For every athlete in your box.
           </p>
 
