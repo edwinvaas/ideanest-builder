@@ -21,7 +21,16 @@ const experienceLevels = [
   { value: "elite", label: "Elite", desc: "5+ years / competition" },
 ];
 
-const goalOptions = ["Competition", "Strength", "Weight Loss", "Conditioning", "Skill Development", "Health"];
+const goalOptions = [
+  "Competition",
+  "Strength",
+  "Weight Loss",
+  "Conditioning",
+  "Skill Development",
+  "Health",
+  "Olympic Weightlifting",
+  "Longevity",
+];
 
 const AthleteOnboarding = () => {
   const navigate = useNavigate();
