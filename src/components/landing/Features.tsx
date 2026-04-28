@@ -6,42 +6,42 @@ const features = [
     title: "Roster overview",
     description:
       "Every athlete in your box on one screen — score, trend, biggest limiter and stagnation flags.",
-    audience: "For coaches",
+    audience: "",
   },
   {
     icon: ClipboardList,
     title: "Smarter class prep",
     description:
       "Coach Buddy tells you who to watch today, where to focus the class and how to scale — in seconds.",
-    audience: "For coaches",
+    audience: "",
   },
   {
     icon: TrendingUp,
     title: "Spot stagnation early",
     description:
       "Trend tracking surfaces members who stopped progressing, so you can intervene before they drop off.",
-    audience: "For coaches",
+    audience: "",
   },
   {
     icon: Target,
     title: "Limiter detection",
     description:
       "Each athlete gets one clear next focus — the single weakest link blocking their progress.",
-    audience: "For athletes",
+    audience: "",
   },
   {
     icon: Brain,
-    title: "Athlete Buddy",
+    title: "Box Buddy",
     description:
-      "A personal AI assistant that turns benchmarks and lifts into concrete weekly actions.",
-    audience: "For athletes",
+      "A personal AI assistant for both athletes and coaches that helps in better decision making based on the athlete's performance capacity. Ask anything varying from personal development plan to specific WOD strategy for crushing PR's. ",
+    audience: "",
   },
   {
     icon: BarChart3,
     title: "Performance profile",
     description:
       "Engine, strength, gymnastics and more — visualized so progress is obvious to athlete and coach.",
-    audience: "Shared",
+    audience: "",
   },
 ];
 
@@ -69,9 +69,11 @@ const Features = () => {
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:shadow-glow transition-shadow">
                   <feature.icon className="w-6 h-6 text-primary" />
                 </div>
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground bg-secondary/60 border border-border rounded-full px-2 py-1">
-                  {feature.audience}
-                </span>
+                {feature.audience && (
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground bg-secondary/60 border border-border rounded-full px-2 py-1">
+                    {feature.audience}
+                  </span>
+                )}
               </div>
               <h3 className="font-display font-semibold text-lg mb-2">{feature.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
