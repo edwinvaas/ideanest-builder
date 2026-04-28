@@ -1,4 +1,4 @@
-import { Target, BarChart3, Users, Brain, ClipboardList, TrendingUp } from "lucide-react";
+import { Target, BarChart3, Users, Brain, ClipboardList, TrendingUp, Network } from "lucide-react";
 
 const features = [
   {
@@ -41,6 +41,13 @@ const features = [
     title: "Performance profile",
     description:
       "Engine, strength, gymnastics and more — visualized so progress is obvious to athlete and coach.",
+    audience: "",
+  },
+  {
+    icon: Network,
+    title: "Cross box learning platform",
+    description:
+      "The more boxes join, the smarter BoxBrain becomes — safely learning from shared performance patterns to build stronger benchmarks.",
     audience: "",
   },
 ];
