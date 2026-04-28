@@ -45,7 +45,7 @@ const features = [
   },
   {
     icon: Network,
-    title: "Cross box learning platform",
+    title: "Cross box learning layer",
     description:
       "The more boxes join, the smarter BoxBrain becomes — safely learning from shared performance patterns to build stronger benchmarks.",
     audience: "",
