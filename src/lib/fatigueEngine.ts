@@ -92,6 +92,10 @@ export interface PacingProtocol {
   narrative: string;
   /** Loaded-movement scaling, e.g. 0.85 for a de-load */
   loadScalingPct: number;
+  /** Predicted finish time for THIS protocol (seconds) */
+  predictedTimeSeconds: number;
+  /** Predicted fatigue point for THIS protocol (seconds) */
+  fatiguePointSeconds: number;
 }
 
 export interface TimelinePoint {
@@ -325,14 +329,26 @@ export function classifyZone(
 
 // ───────────── 3. Three protocols ─────────────
 
+/** Per-protocol pacing characteristics applied to baseline predicted time. */
+export const PROTOCOL_FACTORS: Record<
+  ProtocolId,
+  { timeFactor: number; fatigueFactor: number }
+> = {
+  // Aggressive — finishes faster but fatigue point arrives earlier
+  game_plan: { timeFactor: 0.92, fatigueFactor: 0.82 },
+  // Baseline reference
+  smart_engine: { timeFactor: 1.0, fatigueFactor: 1.0 },
+  // Conservative Z1 work — slower finish, fatigue point pushed far back
+  foundation: { timeFactor: 1.18, fatigueFactor: 1.45 },
+};
+
 function buildProtocol(
   id: ProtocolId,
-  predicted: number,
+  protocolPredicted: number,
+  protocolFatigue: number,
   loadScalingPct: number,
 ): PacingProtocol {
-  const m = (sec: number) =>
-    `${Math.floor(sec / 60)}:${(Math.round(sec) % 60).toString().padStart(2, "0")}`;
-
+  const predicted = protocolPredicted;
   if (id === "game_plan") {
     const splits: PacingSplit[] = [
       {
@@ -367,6 +383,8 @@ function buildProtocol(
       splits,
       narrative: buildClusterNarrative("game_plan", predicted),
       loadScalingPct,
+      predictedTimeSeconds: predicted,
+      fatiguePointSeconds: protocolFatigue,
     };
   }
 
@@ -404,6 +422,8 @@ function buildProtocol(
       splits,
       narrative: buildClusterNarrative("smart_engine", predicted),
       loadScalingPct,
+      predictedTimeSeconds: predicted,
+      fatiguePointSeconds: protocolFatigue,
     };
   }
 
@@ -441,6 +461,8 @@ function buildProtocol(
     splits,
     narrative: buildClusterNarrative("foundation", predicted),
     loadScalingPct,
+    predictedTimeSeconds: predicted,
+    fatiguePointSeconds: protocolFatigue,
   };
 }
 
@@ -517,10 +539,17 @@ export function buildStrategy(
   )
     recommended = "game_plan";
 
+  const protoTime = (id: ProtocolId) =>
+    Math.max(30, Math.round(predicted * PROTOCOL_FACTORS[id].timeFactor));
+  const protoFatigue = (id: ProtocolId) =>
+    Math.round(
+      Math.max(15, fatiguePoint * PROTOCOL_FACTORS[id].fatigueFactor),
+    );
+
   const protocols: Record<ProtocolId, PacingProtocol> = {
-    game_plan: buildProtocol("game_plan", predicted, loadScaling),
-    smart_engine: buildProtocol("smart_engine", predicted, loadScaling),
-    foundation: buildProtocol("foundation", predicted, loadScaling),
+    game_plan: buildProtocol("game_plan", protoTime("game_plan"), protoFatigue("game_plan"), loadScaling),
+    smart_engine: buildProtocol("smart_engine", protoTime("smart_engine"), protoFatigue("smart_engine"), loadScaling),
+    foundation: buildProtocol("foundation", protoTime("foundation"), protoFatigue("foundation"), loadScaling),
   };
 
   const advice = buildAdvice(
@@ -600,7 +629,7 @@ export function buildTimeline(
   const protocol = plan.protocols[protocolId];
   const points: TimelinePoint[] = [];
   let currentHr = Math.round(plan.estimatedMaxHr * 0.55);
-  for (let t = 0; t <= plan.predictedTimeSeconds; t += resolution) {
+  for (let t = 0; t <= protocol.predictedTimeSeconds; t += resolution) {
     const split =
       protocol.splits.find((s) => t >= s.startSec && t <= s.endSec) ??
       protocol.splits[protocol.splits.length - 1];

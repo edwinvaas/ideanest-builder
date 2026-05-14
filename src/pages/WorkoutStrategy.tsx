@@ -83,7 +83,7 @@ const WorkoutStrategy = () => {
           athlete_id: user.id,
           anaerobic_threshold_bpm: plan.anaerobicThresholdBpm,
           redline_bpm: plan.redlineBpm,
-          fatigue_point_seconds: plan.fatiguePointSeconds,
+          fatigue_point_seconds: plan.protocols[activeProtocol].fatiguePointSeconds,
           splits: plan.protocols[activeProtocol].splits as any,
           advice: plan.advice,
           chosen_protocol: activeProtocol,
@@ -145,11 +145,11 @@ const WorkoutStrategy = () => {
             <p className="text-muted-foreground text-sm">
               Voorspelde finish:{" "}
               <span className="font-mono text-foreground">
-                {formatSeconds(plan.predictedTimeSeconds)}
+                {formatSeconds(protocol.predictedTimeSeconds)}
               </span>{" "}
               • Fatigue point:{" "}
               <span className="font-mono text-foreground">
-                {formatSeconds(plan.fatiguePointSeconds)}
+                {formatSeconds(protocol.fatiguePointSeconds)}
               </span>
             </p>
           </div>
