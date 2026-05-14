@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { isDemoMode } from "@/lib/demoMode";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
@@ -10,6 +11,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  if (!session) return <Navigate to="/auth" replace />;
+  if (!session && !isDemoMode()) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
