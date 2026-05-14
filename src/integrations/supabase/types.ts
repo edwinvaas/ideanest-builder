@@ -260,6 +260,7 @@ export type Database = {
           advice: string | null
           anaerobic_threshold_bpm: number | null
           athlete_id: string
+          chosen_protocol: string
           created_at: string
           fatigue_point_seconds: number | null
           id: string
@@ -271,6 +272,7 @@ export type Database = {
           advice?: string | null
           anaerobic_threshold_bpm?: number | null
           athlete_id: string
+          chosen_protocol?: string
           created_at?: string
           fatigue_point_seconds?: number | null
           id?: string
@@ -282,6 +284,7 @@ export type Database = {
           advice?: string | null
           anaerobic_threshold_bpm?: number | null
           athlete_id?: string
+          chosen_protocol?: string
           created_at?: string
           fatigue_point_seconds?: number | null
           id?: string
@@ -368,36 +371,75 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_alerts: {
+        Row: {
+          alert_type: string
+          athlete_id: string
+          created_at: string
+          id: string
+          message: string
+          resolved: boolean
+          session_id: string | null
+          severity: string
+        }
+        Insert: {
+          alert_type: string
+          athlete_id: string
+          created_at?: string
+          id?: string
+          message: string
+          resolved?: boolean
+          session_id?: string | null
+          severity?: string
+        }
+        Update: {
+          alert_type?: string
+          athlete_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          resolved?: boolean
+          session_id?: string | null
+          severity?: string
+        }
+        Relationships: []
+      }
       fatigue_profiles: {
         Row: {
           athlete_id: string
+          correction_factor: number
           created_at: string
           data_points_used: number
           estimated_max_hr: number
           id: string
           last_calibrated_at: string
+          mental_resilience_score: number
           recovery_factor: number
           redline_pct: number
           updated_at: string
         }
         Insert: {
           athlete_id: string
+          correction_factor?: number
           created_at?: string
           data_points_used?: number
           estimated_max_hr: number
           id?: string
           last_calibrated_at?: string
+          mental_resilience_score?: number
           recovery_factor?: number
           redline_pct?: number
           updated_at?: string
         }
         Update: {
           athlete_id?: string
+          correction_factor?: number
           created_at?: string
           data_points_used?: number
           estimated_max_hr?: number
           id?: string
           last_calibrated_at?: string
+          mental_resilience_score?: number
           recovery_factor?: number
           redline_pct?: number
           updated_at?: string

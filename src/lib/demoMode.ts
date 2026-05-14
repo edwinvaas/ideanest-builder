@@ -1,4 +1,4 @@
-import type { AthleteSnapshot } from "@/lib/fatigueEngine";
+import type { AthleteSnapshot, WodMovement } from "@/lib/fatigueEngine";
 import type { WorkoutSession } from "@/hooks/useTodaySession";
 
 const KEY = "boxbrain.demoMode";
@@ -16,6 +16,14 @@ export function setDemoMode(on: boolean) {
 
 export const DEMO_DISPLAY_NAME = "Demo Athlete";
 
+export const DEMO_UNBROKEN: Record<string, number> = {
+  "pull-up": 25,
+  "chest-to-bar": 15,
+  "handstand-push-up": 10,
+  "double-under": 80,
+  "toes-to-bar": 18,
+};
+
 export const DEMO_SNAPSHOT: AthleteSnapshot = {
   age: 32,
   engineScore: 0.68,
@@ -24,14 +32,22 @@ export const DEMO_SNAPSHOT: AthleteSnapshot = {
   recoveryToday: 0.78,
   redlinePct: 0.9,
   recoveryFactor: 1.0,
+  correctionFactor: 1.0,
+  mentalResilience: 0.6,
+  unbrokenByMovement: DEMO_UNBROKEN,
 };
 
 export const DEMO_BENCHMARK_TIMES: Record<string, number> = {
-  fran: 218, // 3:38
-  helen: 512, // 8:32
-  grace: 165, // 2:45
-  diane: 252, // 4:12
+  fran: 218,
+  helen: 512,
+  grace: 165,
+  diane: 252,
 };
+
+export const DEMO_MOVEMENTS: WodMovement[] = [
+  { slug: "thruster", reps: 15, isLoaded: true },
+  { slug: "pull-up", reps: 15 },
+];
 
 export const DEMO_SESSION: WorkoutSession = {
   id: "demo-session",

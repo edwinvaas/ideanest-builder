@@ -4,6 +4,7 @@ import RoleBadge from "@/components/RoleBadge";
 import CoachStats from "@/components/coach/CoachStats";
 import CoachQuickCues from "@/components/coach/CoachQuickCues";
 import CoachDeepDive from "@/components/coach/CoachDeepDive";
+import CoachIntelligenceBar from "@/components/coach/CoachIntelligenceBar";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, ArrowRight, Zap, Microscope, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +12,7 @@ import { useCoachRoster } from "@/hooks/useCoachRoster";
 
 const CoachDashboard = () => {
   const navigate = useNavigate();
-  const { rows, loading } = useCoachRoster();
+  const { rows, loading, anomalies, openComparison } = useCoachRoster();
   // Auto-pick: >6 atleten = quick-cues, kleiner = deep-dive
   const autoMode: "quick" | "deep" = rows.length > 6 ? "quick" : "deep";
   const [mode, setMode] = useState<"quick" | "deep" | null>(null);
@@ -82,6 +83,10 @@ const CoachDashboard = () => {
           ) : (
             <>
               <CoachStats rows={rows} />
+              <CoachIntelligenceBar
+                anomalies={anomalies}
+                openComparison={openComparison}
+              />
               {activeMode === "quick" ? (
                 <CoachQuickCues rows={rows} />
               ) : (

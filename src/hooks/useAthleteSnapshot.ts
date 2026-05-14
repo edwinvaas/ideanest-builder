@@ -60,7 +60,7 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
         sb.from("athlete_gymnastics_records").select("max_unbroken_reps, movements(slug)").eq("athlete_id", athleteId),
         sb.from("athlete_benchmark_results").select("time_seconds, benchmark_workouts(slug)").eq("athlete_id", athleteId),
         sb.from("wearable_readings").select("recovery_pct").eq("athlete_id", athleteId).order("reading_date", { ascending: false }).limit(1).maybeSingle(),
-        sb.from("fatigue_profiles").select("redline_pct, recovery_factor").eq("athlete_id", athleteId).maybeSingle(),
+        sb.from("fatigue_profiles").select("redline_pct, recovery_factor, correction_factor, mental_resilience_score").eq("athlete_id", athleteId).maybeSingle(),
       ]);
 
       const dob = profile?.date_of_birth ? new Date(profile.date_of_birth) : null;
@@ -126,6 +126,9 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
           recoveryToday,
           redlinePct: Number(fatigue?.redline_pct ?? 0.9),
           recoveryFactor: Number(fatigue?.recovery_factor ?? 1.0),
+          correctionFactor: Number(fatigue?.correction_factor ?? 1.0),
+          mentalResilience: Number(fatigue?.mental_resilience_score ?? 0.5),
+          unbrokenByMovement: Object.fromEntries(gymBy),
         });
         setIsMock(false);
       }
