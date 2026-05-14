@@ -83,6 +83,10 @@ const CoachDashboard = () => {
           ) : (
             <>
               <CoachStats rows={rows} />
+              <CoachIntelligenceBar
+                anomalies={anomalies}
+                openComparison={openComparison}
+              />
               {activeMode === "quick" ? (
                 <CoachQuickCues rows={rows} />
               ) : (
