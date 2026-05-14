@@ -33,7 +33,7 @@ export function useWodAnalysis(wodId: string | null): UseWodAnalysisResult {
     setError(null);
 
     // RLS on wod_analyses enforces box_id automatically via the JWT — no manual filter needed.
-    const { data, error: fetchError } = await supabase
+    const { data, error: fetchError } = await (supabase as any)
       .from("wod_analyses")
       .select("*")
       .eq("wod_id", wodId)
