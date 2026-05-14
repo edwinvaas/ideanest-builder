@@ -1,5 +1,5 @@
 import Navbar from "@/components/Navbar";
-import { AthleteTable } from "@/components/coach/AthleteTable";
+import AthleteTable from "@/components/coach/AthleteTable";
 import CoachStats from "@/components/coach/CoachStats";
 import RoleBadge from "@/components/RoleBadge";
 import { Button } from "@/components/ui/button";

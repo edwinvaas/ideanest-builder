@@ -49,7 +49,7 @@ export const AthleteTable = () => {
           return;
         }
 
-        const rows: AthleteRow[] = (data ?? []).map((a) => {
+        const rows: AthleteRow[] = ((data ?? []) as any[]).map((a: any) => {
           // Take the most recent profile entry
           const profiles = (a.athlete_limiter_profiles ?? []) as any[];
           const latest = profiles.sort(
@@ -179,3 +179,5 @@ export const AthleteTable = () => {
     </div>
   );
 };
+
+export default AthleteTable;

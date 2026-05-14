@@ -41,8 +41,8 @@ export function useAthleteProfile(athleteId: string | null): UseAthleteProfileRe
       .order("assessed_at", { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data, error: fetchError }) => {
-        setProfile(data as AthleteProfile | null);
+      .then(({ data, error: fetchError }: any) => {
+        setProfile((data ?? null) as AthleteProfile | null);
         setError(fetchError?.message ?? null);
         setLoading(false);
       });

@@ -121,3 +121,5 @@ export const LimiterCard = () => {
     </div>
   );
 };
+
+export default LimiterCard;

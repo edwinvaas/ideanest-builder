@@ -42,7 +42,7 @@ export function useWodAnalysis(wodId: string | null): UseWodAnalysisResult {
     if (fetchError) {
       setError(fetchError.message);
     } else {
-      setAnalysis(data as WodAnalysis | null);
+      setAnalysis((data ?? null) as WodAnalysis | null);
     }
     setLoading(false);
   }, [wodId]);

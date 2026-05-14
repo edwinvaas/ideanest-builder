@@ -5,23 +5,16 @@ interface RoleBadgeProps {
   role: "coach" | "athlete";
   /** Optional one-line microcopy that explains intent of the screen */
   hint?: string;
-  /** Alias for `hint` — kept for backwards-compat with older call sites */
+  /** Alias for `hint` kept for backwards compatibility */
   description?: string;
   className?: string;
 }
 
-/**
- * Persistent role indicator placed at the top of every role-specific screen.
- * - Coach → cool primary (navy/graphite)
- * - Athlete → warm accent (amber/orange)
- *
- * The colour shift is intentionally subtle: same layout, different signal.
- */
 const RoleBadge = ({ role, hint, description, className }: RoleBadgeProps) => {
+  const microcopy = hint ?? description;
   const isCoach = role === "coach";
   const Icon = isCoach ? Users : User;
   const label = isCoach ? "Coach View" : "Athlete View";
-  const microcopy = hint ?? description;
 
   return (
     <div
@@ -44,8 +37,8 @@ const RoleBadge = ({ role, hint, description, className }: RoleBadgeProps) => {
         <Icon className="w-3 h-3" />
         {label}
       </span>
-      {microcopy && (
-        <p className="text-xs text-muted-foreground leading-snug">{microcopy}</p>
+      {hint && (
+        <p className="text-xs text-muted-foreground leading-snug">{hint}</p>
       )}
     </div>
   );

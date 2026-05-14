@@ -52,7 +52,7 @@ const WorkoutStrategy = () => {
       .order("analyzed_at", { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data }: { data: { wod_id?: string } | null }) => {
+      .then(({ data }: any) => {
         if (data?.wod_id) setLatestWodId(data.wod_id);
       });
   }, []);
