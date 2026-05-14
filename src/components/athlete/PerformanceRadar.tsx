@@ -6,17 +6,31 @@ import {
   PolarRadiusAxis,
   ResponsiveContainer,
 } from "recharts";
+import type { AthleteSnapshot } from "@/lib/fatigueEngine";
 
-const data = [
-  { metric: "Engine", value: 78, fullMark: 100 },
-  { metric: "Strength", value: 62, fullMark: 100 },
-  { metric: "Gymnastics", value: 45, fullMark: 100 },
-  { metric: "Olympic Lifting", value: 70, fullMark: 100 },
-  { metric: "Endurance", value: 85, fullMark: 100 },
-  { metric: "Mobility", value: 55, fullMark: 100 },
-];
+interface Props {
+  snapshot: AthleteSnapshot | null;
+}
 
-const PerformanceRadar = () => {
+const PerformanceRadar = ({ snapshot }: Props) => {
+  const data = snapshot
+    ? [
+        { metric: "Engine", value: Math.round(snapshot.engineScore * 100) },
+        { metric: "Strength", value: Math.round(snapshot.strengthScore * 100) },
+        { metric: "Gymnastics", value: Math.round(snapshot.gymnasticsScore * 100) },
+        { metric: "Recovery", value: Math.round(snapshot.recoveryToday * 100) },
+        { metric: "Threshold", value: Math.round(snapshot.redlinePct * 100) },
+        { metric: "Resilience", value: Math.round(snapshot.recoveryFactor * 60) },
+      ]
+    : [
+        { metric: "Engine", value: 0 },
+        { metric: "Strength", value: 0 },
+        { metric: "Gymnastics", value: 0 },
+        { metric: "Recovery", value: 0 },
+        { metric: "Threshold", value: 0 },
+        { metric: "Resilience", value: 0 },
+      ];
+
   return (
     <div className="rounded-xl bg-gradient-card border border-border p-6 shadow-card">
       <h3 className="font-display font-semibold text-lg mb-4">Performance Profiel</h3>
