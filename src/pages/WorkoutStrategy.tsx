@@ -58,7 +58,7 @@ const WorkoutStrategy = () => {
   }, []);
 
   const { analysis, loading } = useWodAnalysis(latestWodId);
-  const { profile: limiterProfile } = useAthleteProfile(athleteProfile?.id ?? null);
+  const { profile: limiterProfile } = useAthleteProfile((athleteProfile as any)?.id ?? null);
 
   const readiness =
     analysis && limiterProfile
