@@ -34,15 +34,15 @@ export function useAthleteProfile(athleteId: string | null): UseAthleteProfileRe
     if (!athleteId) return;
 
     setLoading(true);
-    supabase
+    (supabase as any)
       .from("athlete_limiter_profiles")
       .select("*")
       .eq("athlete_id", athleteId)
       .order("assessed_at", { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data, error: fetchError }) => {
-        setProfile(data as AthleteProfile | null);
+      .then(({ data, error: fetchError }: any) => {
+        setProfile((data ?? null) as AthleteProfile | null);
         setError(fetchError?.message ?? null);
         setLoading(false);
       });
