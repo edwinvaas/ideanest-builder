@@ -1,13 +1,29 @@
-import { Users, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { Users, AlertTriangle, TrendingUp, Activity } from "lucide-react";
+import type { CoachAthleteRow } from "@/hooks/useCoachRoster";
 
-const stats = [
-  { label: "Total Athletes", value: "24", icon: Users, color: "text-primary" },
-  { label: "Limiters Identified", value: "18", icon: AlertTriangle, color: "text-accent" },
-  { label: "Avg. Progress", value: "+4.2", icon: TrendingUp, color: "text-success" },
-  { label: "Stagnating", value: "3", icon: TrendingDown, color: "text-destructive" },
-];
+interface Props {
+  rows: CoachAthleteRow[];
+}
 
-const CoachStats = () => {
+const CoachStats = ({ rows }: Props) => {
+  const total = rows.length;
+  const withFeedback = rows.filter((r) => r.latestRpe !== null).length;
+  const avgRpe =
+    withFeedback > 0
+      ? (
+          rows.reduce((s, r) => s + (r.latestRpe ?? 0), 0) / withFeedback
+        ).toFixed(1)
+      : "—";
+  const lowRecovery = rows.filter(
+    (r) => r.latestRecovery !== null && r.latestRecovery < 60,
+  ).length;
+
+  const stats = [
+    { label: "Atleten", value: total, icon: Users, color: "text-primary" },
+    { label: "Gemiddeld RPE", value: avgRpe, icon: TrendingUp, color: "text-accent" },
+    { label: "Met feedback", value: withFeedback, icon: Activity, color: "text-success" },
+    { label: "Laag herstel", value: lowRecovery, icon: AlertTriangle, color: "text-destructive" },
+  ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       {stats.map((stat) => (
