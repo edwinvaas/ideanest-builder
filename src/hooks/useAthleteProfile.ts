@@ -34,7 +34,7 @@ export function useAthleteProfile(athleteId: string | null): UseAthleteProfileRe
     if (!athleteId) return;
 
     setLoading(true);
-    supabase
+    (supabase as any)
       .from("athlete_limiter_profiles")
       .select("*")
       .eq("athlete_id", athleteId)
