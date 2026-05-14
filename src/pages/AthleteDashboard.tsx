@@ -33,6 +33,15 @@ const AthleteDashboard = () => {
       <div className="fixed top-16 left-0 right-0 h-0.5 bg-gradient-fire z-40 opacity-70" />
       <div className="pt-24 pb-16">
         <div className="container mx-auto px-6">
+          {(demo || isMock) && (
+            <DemoBanner
+              reason={
+                demo
+                  ? "you're previewing without an account."
+                  : "no benchmarks logged yet — sample athlete loaded."
+              }
+            />
+          )}
           <RoleBadge
             role="athlete"
             hint="Your personal view — what to focus on today and how to approach it."
