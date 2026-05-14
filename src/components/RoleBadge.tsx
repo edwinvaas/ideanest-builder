@@ -44,8 +44,8 @@ const RoleBadge = ({ role, hint, description, className }: RoleBadgeProps) => {
         <Icon className="w-3 h-3" />
         {label}
       </span>
-      {hint && (
-        <p className="text-xs text-muted-foreground leading-snug">{hint}</p>
+      {microcopy && (
+        <p className="text-xs text-muted-foreground leading-snug">{microcopy}</p>
       )}
     </div>
   );
