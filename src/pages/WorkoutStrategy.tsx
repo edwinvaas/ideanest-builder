@@ -83,7 +83,7 @@ const WorkoutStrategy = () => {
           athlete_id: user.id,
           anaerobic_threshold_bpm: plan.anaerobicThresholdBpm,
           redline_bpm: plan.redlineBpm,
-          fatigue_point_seconds: plan.fatiguePointSeconds,
+          fatigue_point_seconds: plan.protocols[activeProtocol].fatiguePointSeconds,
           splits: plan.protocols[activeProtocol].splits as any,
           advice: plan.advice,
           chosen_protocol: activeProtocol,
