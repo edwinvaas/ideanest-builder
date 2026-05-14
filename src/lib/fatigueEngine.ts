@@ -329,14 +329,26 @@ export function classifyZone(
 
 // ───────────── 3. Three protocols ─────────────
 
+/** Per-protocol pacing characteristics applied to baseline predicted time. */
+export const PROTOCOL_FACTORS: Record<
+  ProtocolId,
+  { timeFactor: number; fatigueFactor: number }
+> = {
+  // Aggressive — finishes faster but fatigue point arrives earlier
+  game_plan: { timeFactor: 0.92, fatigueFactor: 0.82 },
+  // Baseline reference
+  smart_engine: { timeFactor: 1.0, fatigueFactor: 1.0 },
+  // Conservative Z1 work — slower finish, fatigue point pushed far back
+  foundation: { timeFactor: 1.18, fatigueFactor: 1.45 },
+};
+
 function buildProtocol(
   id: ProtocolId,
-  predicted: number,
+  protocolPredicted: number,
+  protocolFatigue: number,
   loadScalingPct: number,
 ): PacingProtocol {
-  const m = (sec: number) =>
-    `${Math.floor(sec / 60)}:${(Math.round(sec) % 60).toString().padStart(2, "0")}`;
-
+  const predicted = protocolPredicted;
   if (id === "game_plan") {
     const splits: PacingSplit[] = [
       {
@@ -371,6 +383,8 @@ function buildProtocol(
       splits,
       narrative: buildClusterNarrative("game_plan", predicted),
       loadScalingPct,
+      predictedTimeSeconds: predicted,
+      fatiguePointSeconds: protocolFatigue,
     };
   }
 
@@ -408,6 +422,8 @@ function buildProtocol(
       splits,
       narrative: buildClusterNarrative("smart_engine", predicted),
       loadScalingPct,
+      predictedTimeSeconds: predicted,
+      fatiguePointSeconds: protocolFatigue,
     };
   }
 
@@ -445,6 +461,8 @@ function buildProtocol(
     splits,
     narrative: buildClusterNarrative("foundation", predicted),
     loadScalingPct,
+    predictedTimeSeconds: predicted,
+    fatiguePointSeconds: protocolFatigue,
   };
 }
 
