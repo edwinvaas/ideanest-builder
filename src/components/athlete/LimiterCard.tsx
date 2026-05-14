@@ -19,7 +19,7 @@ const SECONDARY_LIMITERS: LimiterType[] = [
 
 export const LimiterCard = () => {
   const { profile: athleteProfile } = useAthlete();
-  const { profile, loading } = useAthleteProfile(athleteProfile?.id ?? null);
+  const { profile, loading } = useAthleteProfile((athleteProfile as any)?.id ?? null);
 
   if (loading) {
     return (
