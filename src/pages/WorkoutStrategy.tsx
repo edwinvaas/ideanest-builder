@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Zap, Clock, TrendingUp, AlertTriangle, RefreshCw } from "lucide-react";
-import { Navbar } from "@/components/Navbar";
-import { RoleBadge } from "@/components/RoleBadge";
+import Navbar from "@/components/Navbar";
+import RoleBadge from "@/components/RoleBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAthlete } from "@/contexts/AthleteContext";
