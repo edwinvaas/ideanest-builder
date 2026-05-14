@@ -1,279 +1,194 @@
-import { useEffect, useState } from "react";
-import { Zap, Clock, TrendingUp, AlertTriangle, RefreshCw } from "lucide-react";
+import { useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import RoleBadge from "@/components/RoleBadge";
-import { Button } from "@/components/ui/button";
+import FatigueTimeline from "@/components/athlete/FatigueTimeline";
+import PostWodFeedback from "@/components/athlete/PostWodFeedback";
 import { Badge } from "@/components/ui/badge";
-import { useAthlete } from "@/contexts/AthleteContext";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAthleteSnapshot } from "@/hooks/useAthleteSnapshot";
+import { useTodaySession } from "@/hooks/useTodaySession";
+import { buildStrategy } from "@/lib/fatigueEngine";
+import { formatSeconds } from "@/lib/onboardingSync";
 import { supabase } from "@/integrations/supabase/client";
-import { useWodAnalysis } from "@/hooks/useWodAnalysis";
-import { useAthleteProfile } from "@/hooks/useAthleteProfile";
-import { computeReadinessScore } from "@/types/intelligence";
-import { invokeWodInterpreter } from "@/lib/wod-interpreter";
-import {
-  STIMULUS_LABEL,
-  STIMULUS_COLOR,
-  PACING_LABEL,
-  PACING_ICON,
-  LIMITER_LABEL,
-  LIMITER_COLOR,
-  SCALING_LABEL,
-  SCALING_COLOR,
-  getAthletePacingExplanation,
-  getScalingModifications,
-  resolveScaling,
-} from "@/lib/ui-mapping";
-import { useToast } from "@/hooks/use-toast";
+import { Activity, Loader2 } from "lucide-react";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-// resolveScaling lives in ui-mapping but wasn't exported — add it here locally
-// until the ui-mapping file is updated.
-function athleteScaling(readiness: number) {
-  if (readiness >= 0.7) return "rx" as const;
-  if (readiness >= 0.4) return "scaled" as const;
-  return "foundations" as const;
-}
-
-// ─── Component ───────────────────────────────────────────────────────────────
+const FALLBACK_DEMAND = {
+  expectedTimeSeconds: 600,
+  phosphagen: 10,
+  glycolytic: 45,
+  oxidative: 45,
+  dominantLimiter: "engine" as const,
+};
 
 const WorkoutStrategy = () => {
-  const { profile: athleteProfile } = useAthlete();
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const { snapshot, loading } = useAthleteSnapshot(user?.id ?? null);
+  const { session, loading: sessionLoading } = useTodaySession();
 
-  const [latestWodId, setLatestWodId] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
+  const demand = useMemo(() => {
+    if (!session) return FALLBACK_DEMAND;
+    return {
+      expectedTimeSeconds: session.expected_time_seconds ?? 600,
+      phosphagen: session.energy_phosphagen,
+      glycolytic: session.energy_glycolytic,
+      oxidative: session.energy_oxidative,
+      dominantLimiter: (session.primary_limiter ?? "engine") as
+        | "engine"
+        | "strength"
+        | "gymnastics",
+    };
+  }, [session]);
 
-  // Fetch the most recently analyzed WOD for this box (RLS handles box scoping)
+  const plan = useMemo(
+    () => (snapshot ? buildStrategy(snapshot, demand) : null),
+    [snapshot, demand],
+  );
+
+  // Persist generated strategy so coach can read it
   useEffect(() => {
+    if (!plan || !session || !user) return;
     (supabase as any)
-      .from("wod_analyses")
-      .select("wod_id")
-      .order("analyzed_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }: any) => {
-        if (data?.wod_id) setLatestWodId(data.wod_id);
-      });
-  }, []);
+      .from("athlete_strategies")
+      .upsert(
+        {
+          session_id: session.id,
+          athlete_id: user.id,
+          anaerobic_threshold_bpm: plan.anaerobicThresholdBpm,
+          redline_bpm: plan.redlineBpm,
+          fatigue_point_seconds: plan.fatiguePointSeconds,
+          splits: plan.splits as any,
+          advice: plan.advice,
+        },
+        { onConflict: "session_id,athlete_id" },
+      )
+      .then(() => undefined);
+  }, [plan, session, user]);
 
-  const { analysis, loading } = useWodAnalysis(latestWodId);
-  const { profile: limiterProfile } = useAthleteProfile((athleteProfile as any)?.id ?? null);
-
-  const readiness =
-    analysis && limiterProfile
-      ? computeReadinessScore(
-          {
-            engine: limiterProfile.engine_score,
-            strength: limiterProfile.strength_score,
-            gymnastics: limiterProfile.gymnastics_score,
-            mobility: limiterProfile.mobility_score,
-            pacing: limiterProfile.pacing_score,
-            recovery: limiterProfile.recovery_score,
-          },
-          analysis.limiter_demands,
-        )
-      : null;
-
-  const scalingLevel = readiness !== null ? athleteScaling(readiness) : null;
-
-  const scalingMods =
-    analysis && scalingLevel ? getScalingModifications(analysis, scalingLevel) : null;
-
-  const handleReanalyze = async () => {
-    if (!latestWodId) return;
-    setAnalyzing(true);
-    await invokeWodInterpreter(latestWodId, {
-      onSuccess: (r) =>
-        toast({ title: "Analyse bijgewerkt", description: r.analysis.coach_brief }),
-      onError: (msg) =>
-        toast({ title: "Analyse mislukt", description: msg, variant: "destructive" }),
-    });
-    // useWodAnalysis updates automatically via Realtime
-  };
-
-  // ── Loading state ──────────────────────────────────────────────────────────
-  if (loading || !analysis) {
+  if (loading || sessionLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="px-4 md:px-8 py-6 max-w-4xl mx-auto space-y-4">
-          <div className="h-8 bg-white/10 rounded w-1/3 animate-pulse" />
-          <div className="h-40 bg-white/10 rounded-2xl animate-pulse" />
-          <div className="h-40 bg-white/10 rounded-2xl animate-pulse" />
+        <div className="px-4 md:px-8 py-24 max-w-4xl mx-auto">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
         </div>
       </div>
     );
   }
 
+  if (!snapshot) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="px-4 md:px-8 py-24 max-w-4xl mx-auto text-center">
+          <p className="text-muted-foreground">
+            Voltooi je onboarding om een persoonlijke strategie te genereren.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!plan) return null;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <div className="fixed top-16 left-0 right-0 h-0.5 bg-gradient-fire z-40 opacity-70" />
 
-      <div className="px-4 md:px-8 py-6 max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
+      <div className="px-4 md:px-8 py-24 max-w-4xl mx-auto space-y-6">
+        <RoleBadge
+          role="athlete"
+          description="Persoonlijke strategie — jouw profiel toegepast op vandaag's WOD"
+        />
+
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <RoleBadge
-              role="athlete"
-              description="Persoonlijke strategie — jouw limiter profiel vs vandaag's WOD"
-            />
-            <h1 className="text-2xl font-bold mt-2">
-              Workout{" "}
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Strategie
-              </span>
+            <h1 className="text-3xl md:text-4xl font-display font-bold mb-1">
+              Workout <span className="text-gradient-fire">Strategie</span>
             </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              {analysis.estimated_time_domain} · AI analyse
+            <p className="text-muted-foreground text-sm">
+              {session?.title ?? "Generieke conditioning"} —{" "}
+              voorspelde finish: <span className="font-mono text-foreground">{formatSeconds(plan.predictedTimeSeconds)}</span>
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReanalyze}
-            disabled={analyzing}
-            className="shrink-0"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${analyzing ? "animate-spin" : ""}`} />
-            {analyzing ? "Analyseren…" : "Heranalyseer"}
-          </Button>
         </div>
 
-        {/* Stimulus + readiness */}
-        <div className="gradient-card rounded-2xl p-6 flex flex-col sm:flex-row gap-6">
-          <div className="flex-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-              Dominant stimulus
-            </p>
-            <Badge className={`text-sm px-3 py-1 ${STIMULUS_COLOR[analysis.dominant_stimulus]}`}>
-              {STIMULUS_LABEL[analysis.dominant_stimulus]}
-            </Badge>
-            <p className="text-xs text-muted-foreground mt-2">
-              Vertrouwen: {Math.round(analysis.stimulus_confidence * 100)}%
-            </p>
-          </div>
-          {readiness !== null && scalingLevel && (
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                Jouw gereedheid
-              </p>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl font-bold">
-                  {Math.round(readiness * 100)}
-                  <span className="text-sm font-normal text-muted-foreground">/100</span>
-                </span>
-                <Badge className={`text-sm px-3 py-1 ${SCALING_COLOR[scalingLevel]}`}>
-                  {SCALING_LABEL[scalingLevel]}
-                </Badge>
+        {/* WOD card */}
+        {session && (
+          <div className="rounded-xl bg-gradient-card border border-border p-6 shadow-card">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                  WOD vandaag
+                </p>
+                <h2 className="font-display font-bold text-xl">{session.title}</h2>
+                <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
+                  {session.description}
+                </p>
               </div>
+              {session.dominant_stimulus && (
+                <Badge variant="outline" className="shrink-0">
+                  {session.dominant_stimulus}
+                </Badge>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Pacing */}
-        <div className="gradient-card rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            <h2 className="font-semibold">Pacing strategie</h2>
-          </div>
-          <p className="text-sm">{getAthletePacingExplanation(analysis)}</p>
-
-          {analysis.pacing_risks.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                Veelgemaakte fouten
-              </p>
-              {analysis.pacing_risks.map((risk, i) => (
-                <div
-                  key={i}
-                  className="bg-destructive/5 border border-destructive/10 rounded-xl p-3 text-sm"
-                >
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
-                    <div>
-                      <p className="font-medium">{risk.risk}</p>
-                      <p className="text-muted-foreground text-xs mt-0.5">{risk.mitigation}</p>
-                    </div>
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              {[
+                ["Fosfageen", session.energy_phosphagen],
+                ["Glycolytisch", session.energy_glycolytic],
+                ["Oxidatief", session.energy_oxidative],
+              ].map(([label, pct]) => (
+                <div key={label as string}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="font-mono">{pct}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-fire"
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* Scaling advice */}
-        {scalingMods && scalingMods.length > 0 && (
-          <div className="gradient-card rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Zap className="w-5 h-5 text-accent" />
-              <h2 className="font-semibold">
-                Jouw aanpassingen{" "}
-                {scalingLevel && (
-                  <Badge className={`ml-2 text-xs ${SCALING_COLOR[scalingLevel]}`}>
-                    {SCALING_LABEL[scalingLevel]}
-                  </Badge>
-                )}
-              </h2>
-            </div>
-            <ul className="space-y-2">
-              {scalingMods.map((mod, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-primary mt-0.5">•</span>
-                  <span>{mod}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         )}
 
-        {/* Energy systems */}
-        <div className="gradient-card rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="w-5 h-5 text-primary" />
-            <h2 className="font-semibold">Energiesystemen</h2>
-          </div>
-          <div className="space-y-3">
-            {(
-              [
-                ["Fosfageen (explosief)", analysis.energy_system_breakdown.phosphagen],
-                ["Glycolytisch (hoog-intensief)", analysis.energy_system_breakdown.glycolytic],
-                ["Oxidatief (uithoudingsvermogen)", analysis.energy_system_breakdown.oxidative],
-              ] as [string, number][]
-            ).map(([label, pct]) => (
-              <div key={label}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="font-medium">{pct}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-700"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Engine snapshot */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "Engine", value: Math.round(snapshot.engineScore * 100), suffix: "/100" },
+            { label: "Kracht", value: Math.round(snapshot.strengthScore * 100), suffix: "/100" },
+            { label: "Gymnastiek", value: Math.round(snapshot.gymnasticsScore * 100), suffix: "/100" },
+            { label: "Recovery vandaag", value: Math.round(snapshot.recoveryToday * 100), suffix: "%" },
+          ].map((m) => (
+            <div key={m.label} className="rounded-xl bg-gradient-card border border-border p-4 shadow-card">
+              <p className="text-xs text-muted-foreground">{m.label}</p>
+              <p className="font-display font-bold text-2xl mt-1">
+                {m.value}
+                <span className="text-sm text-muted-foreground font-normal">{m.suffix}</span>
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* High-risk limiters */}
-        {analysis.high_risk_limiters.length > 0 && (
-          <div className="gradient-card rounded-2xl p-6">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">
-              Hoog-risico limiters in deze WOD
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {analysis.high_risk_limiters.map((limiter) => (
-                <span
-                  key={limiter}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium text-white ${LIMITER_COLOR[limiter]}`}
-                >
-                  {LIMITER_LABEL[limiter]}
-                </span>
-              ))}
-            </div>
+        {/* Fatigue timeline */}
+        <FatigueTimeline plan={plan} />
+
+        {/* Coach-voice advice */}
+        <div className="rounded-xl bg-gradient-card border border-border p-6 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <Activity className="w-5 h-5 text-primary" />
+            <h3 className="font-display font-semibold text-lg">Coach voice</h3>
           </div>
+          <p className="text-sm leading-relaxed">{plan.advice}</p>
+        </div>
+
+        {/* Post-WOD feedback */}
+        {session && user && (
+          <PostWodFeedback sessionId={session.id} athleteId={user.id} />
         )}
       </div>
     </div>
