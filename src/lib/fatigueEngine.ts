@@ -539,10 +539,17 @@ export function buildStrategy(
   )
     recommended = "game_plan";
 
+  const protoTime = (id: ProtocolId) =>
+    Math.max(30, Math.round(predicted * PROTOCOL_FACTORS[id].timeFactor));
+  const protoFatigue = (id: ProtocolId) =>
+    Math.round(
+      Math.max(15, fatiguePoint * PROTOCOL_FACTORS[id].fatigueFactor),
+    );
+
   const protocols: Record<ProtocolId, PacingProtocol> = {
-    game_plan: buildProtocol("game_plan", predicted, loadScaling),
-    smart_engine: buildProtocol("smart_engine", predicted, loadScaling),
-    foundation: buildProtocol("foundation", predicted, loadScaling),
+    game_plan: buildProtocol("game_plan", protoTime("game_plan"), protoFatigue("game_plan"), loadScaling),
+    smart_engine: buildProtocol("smart_engine", protoTime("smart_engine"), protoFatigue("smart_engine"), loadScaling),
+    foundation: buildProtocol("foundation", protoTime("foundation"), protoFatigue("foundation"), loadScaling),
   };
 
   const advice = buildAdvice(
