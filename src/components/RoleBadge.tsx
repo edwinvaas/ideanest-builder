@@ -5,6 +5,8 @@ interface RoleBadgeProps {
   role: "coach" | "athlete";
   /** Optional one-line microcopy that explains intent of the screen */
   hint?: string;
+  /** Alias for `hint` — kept for backwards-compat with older call sites */
+  description?: string;
   className?: string;
 }
 
