@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Flame } from "lucide-react";
+import { setDemoMode } from "@/lib/demoMode";
+import { Flame, Eye } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -46,15 +47,30 @@ const Auth = () => {
         data: { display_name: displayName },
       },
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast({ title: "Registratie mislukt", description: error.message, variant: "destructive" });
       return;
     }
-    toast({
-      title: "Check je inbox",
-      description: "We hebben een verificatielink gestuurd naar " + email,
-    });
+    // Auto-confirm is on, so a session is returned immediately
+    if (data.session) {
+      toast({ title: "Welkom bij BoxBrain", description: "Je account is aangemaakt." });
+      navigate("/athlete", { replace: true });
+      return;
+    }
+    // Fallback: try direct sign-in (covers edge case where session isn't returned)
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (signInErr) {
+      toast({ title: "Account aangemaakt", description: "Log nu in met je nieuwe gegevens." });
+      return;
+    }
+    navigate("/athlete", { replace: true });
+  };
+
+  const handleDemo = () => {
+    setDemoMode(true);
+    navigate("/athlete", { replace: true });
   };
 
   const handleGoogle = async () => {
