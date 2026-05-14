@@ -25,7 +25,7 @@ export const AthleteTable = () => {
   useEffect(() => {
     // Join athletes with their most recent limiter profile.
     // RLS on both tables enforces box_id automatically.
-    supabase
+    (supabase as any)
       .from("athletes")
       .select(`
         id,
