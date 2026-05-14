@@ -5,6 +5,8 @@ interface RoleBadgeProps {
   role: "coach" | "athlete";
   /** Optional one-line microcopy that explains intent of the screen */
   hint?: string;
+  /** Alias for `hint` — kept for backwards-compat with older call sites */
+  description?: string;
   className?: string;
 }
 
@@ -15,10 +17,11 @@ interface RoleBadgeProps {
  *
  * The colour shift is intentionally subtle: same layout, different signal.
  */
-const RoleBadge = ({ role, hint, className }: RoleBadgeProps) => {
+const RoleBadge = ({ role, hint, description, className }: RoleBadgeProps) => {
   const isCoach = role === "coach";
   const Icon = isCoach ? Users : User;
   const label = isCoach ? "Coach View" : "Athlete View";
+  const microcopy = hint ?? description;
 
   return (
     <div
@@ -41,8 +44,8 @@ const RoleBadge = ({ role, hint, className }: RoleBadgeProps) => {
         <Icon className="w-3 h-3" />
         {label}
       </span>
-      {hint && (
-        <p className="text-xs text-muted-foreground leading-snug">{hint}</p>
+      {microcopy && (
+        <p className="text-xs text-muted-foreground leading-snug">{microcopy}</p>
       )}
     </div>
   );

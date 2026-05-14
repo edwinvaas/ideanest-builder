@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
 import PerformanceRadar from "@/components/athlete/PerformanceRadar";
-import LimiterCard from "@/components/athlete/LimiterCard";
+import { LimiterCard } from "@/components/athlete/LimiterCard";
 import MetricCards from "@/components/athlete/MetricCards";
 import AdviceSection from "@/components/athlete/AdviceSection";
 import RoleBadge from "@/components/RoleBadge";
