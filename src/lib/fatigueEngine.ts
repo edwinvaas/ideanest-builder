@@ -92,6 +92,10 @@ export interface PacingProtocol {
   narrative: string;
   /** Loaded-movement scaling, e.g. 0.85 for a de-load */
   loadScalingPct: number;
+  /** Predicted finish time for THIS protocol (seconds) */
+  predictedTimeSeconds: number;
+  /** Predicted fatigue point for THIS protocol (seconds) */
+  fatiguePointSeconds: number;
 }
 
 export interface TimelinePoint {
