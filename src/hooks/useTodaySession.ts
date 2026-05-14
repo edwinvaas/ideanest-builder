@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isDemoMode, DEMO_SESSION } from "@/lib/demoMode";
 
 export interface WorkoutSession {
   id: string;
@@ -30,7 +31,8 @@ export function useTodaySession() {
         .order("scheduled_for", { ascending: false })
         .limit(1)
         .maybeSingle();
-      setSession((data ?? null) as WorkoutSession | null);
+      const real = (data ?? null) as WorkoutSession | null;
+      setSession(real ?? (isDemoMode() || !real ? DEMO_SESSION : null));
       setLoading(false);
     })();
   }, []);
