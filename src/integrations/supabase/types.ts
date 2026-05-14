@@ -202,6 +202,103 @@ export type Database = {
           },
         ]
       }
+      athlete_session_results: {
+        Row: {
+          athlete_id: string
+          created_at: string
+          fatigue_point_seconds: number | null
+          id: string
+          notes: string | null
+          perceived_limiter: string | null
+          recorded_on: string
+          rpe: number
+          scaling: Database["public"]["Enums"]["scaling_level"]
+          session_id: string
+          time_seconds: number | null
+          total_reps: number | null
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string
+          fatigue_point_seconds?: number | null
+          id?: string
+          notes?: string | null
+          perceived_limiter?: string | null
+          recorded_on?: string
+          rpe: number
+          scaling?: Database["public"]["Enums"]["scaling_level"]
+          session_id: string
+          time_seconds?: number | null
+          total_reps?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string
+          fatigue_point_seconds?: number | null
+          id?: string
+          notes?: string | null
+          perceived_limiter?: string | null
+          recorded_on?: string
+          rpe?: number
+          scaling?: Database["public"]["Enums"]["scaling_level"]
+          session_id?: string
+          time_seconds?: number | null
+          total_reps?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_session_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      athlete_strategies: {
+        Row: {
+          advice: string | null
+          anaerobic_threshold_bpm: number | null
+          athlete_id: string
+          created_at: string
+          fatigue_point_seconds: number | null
+          id: string
+          redline_bpm: number | null
+          session_id: string
+          splits: Json
+        }
+        Insert: {
+          advice?: string | null
+          anaerobic_threshold_bpm?: number | null
+          athlete_id: string
+          created_at?: string
+          fatigue_point_seconds?: number | null
+          id?: string
+          redline_bpm?: number | null
+          session_id: string
+          splits?: Json
+        }
+        Update: {
+          advice?: string | null
+          anaerobic_threshold_bpm?: number | null
+          athlete_id?: string
+          created_at?: string
+          fatigue_point_seconds?: number | null
+          id?: string
+          redline_bpm?: number | null
+          session_id?: string
+          splits?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_strategies_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       benchmark_workouts: {
         Row: {
           category: Database["public"]["Enums"]["benchmark_category"]
@@ -521,6 +618,78 @@ export type Database = {
             columns: ["athlete_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_sessions: {
+        Row: {
+          benchmark_id: string | null
+          box_id: string | null
+          created_at: string
+          created_by: string
+          description: string
+          dominant_stimulus: string | null
+          energy_glycolytic: number
+          energy_oxidative: number
+          energy_phosphagen: number
+          expected_time_seconds: number | null
+          id: string
+          primary_limiter: string | null
+          scheduled_for: string
+          time_cap_seconds: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          benchmark_id?: string | null
+          box_id?: string | null
+          created_at?: string
+          created_by: string
+          description: string
+          dominant_stimulus?: string | null
+          energy_glycolytic?: number
+          energy_oxidative?: number
+          energy_phosphagen?: number
+          expected_time_seconds?: number | null
+          id?: string
+          primary_limiter?: string | null
+          scheduled_for?: string
+          time_cap_seconds?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          benchmark_id?: string | null
+          box_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          dominant_stimulus?: string | null
+          energy_glycolytic?: number
+          energy_oxidative?: number
+          energy_phosphagen?: number
+          expected_time_seconds?: number | null
+          id?: string
+          primary_limiter?: string | null
+          scheduled_for?: string
+          time_cap_seconds?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_benchmark_id_fkey"
+            columns: ["benchmark_id"]
+            isOneToOne: false
+            referencedRelation: "benchmark_workouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sessions_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: false
+            referencedRelation: "boxes"
             referencedColumns: ["id"]
           },
         ]
