@@ -17,10 +17,11 @@ interface RoleBadgeProps {
  *
  * The colour shift is intentionally subtle: same layout, different signal.
  */
-const RoleBadge = ({ role, hint, className }: RoleBadgeProps) => {
+const RoleBadge = ({ role, hint, description, className }: RoleBadgeProps) => {
   const isCoach = role === "coach";
   const Icon = isCoach ? Users : User;
   const label = isCoach ? "Coach View" : "Athlete View";
+  const microcopy = hint ?? description;
 
   return (
     <div
