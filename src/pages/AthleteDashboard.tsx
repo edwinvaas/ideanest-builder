@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import PerformanceRadar from "@/components/athlete/PerformanceRadar";
 import MetricCards from "@/components/athlete/MetricCards";
 import RecoveryWidget from "@/components/athlete/RecoveryWidget";
 import RoleBadge from "@/components/RoleBadge";
+import { DemoBanner } from "@/components/DemoBanner";
 import { Button } from "@/components/ui/button";
 import { Target, ArrowRight, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,17 +12,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentProfile } from "@/hooks/useCurrentProfile";
 import { useAthleteSnapshot } from "@/hooks/useAthleteSnapshot";
 import { useTodaySession } from "@/hooks/useTodaySession";
+import { isDemoMode } from "@/lib/demoMode";
 
 const AthleteDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, loading: profileLoading } = useCurrentProfile();
-  const { snapshot, benchmarkTimes, displayName } = useAthleteSnapshot(user?.id ?? null);
+  const { snapshot, benchmarkTimes, displayName, isMock } = useAthleteSnapshot(user?.id ?? null);
   const { session } = useTodaySession();
+  const demo = isDemoMode();
 
   useEffect(() => {
+    if (demo) return;
     if (!profileLoading && profile && !profile.onboarded) navigate("/onboarding");
-  }, [profile, profileLoading, navigate]);
+  }, [profile, profileLoading, navigate, demo]);
 
   return (
     <div className="min-h-screen bg-background">
