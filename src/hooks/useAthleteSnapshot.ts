@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { AthleteSnapshot } from "@/lib/fatigueEngine";
+import {
+  isDemoMode,
+  DEMO_SNAPSHOT,
+  DEMO_BENCHMARK_TIMES,
+  DEMO_DISPLAY_NAME,
+} from "@/lib/demoMode";
 
 interface SnapshotResult {
   snapshot: AthleteSnapshot | null;
@@ -9,6 +15,8 @@ interface SnapshotResult {
   benchmarkTimes: Record<string, number>;
   /** Display name */
   displayName: string;
+  /** True when no real data exists and we're showing fallback */
+  isMock: boolean;
 }
 
 const FRAN_REF = 240; // 4:00 reference
@@ -23,9 +31,16 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
   const [benchmarkTimes, setBenchmarkTimes] = useState<Record<string, number>>({});
   const [displayName, setDisplayName] = useState("Athlete");
   const [loading, setLoading] = useState(true);
+  const [isMock, setIsMock] = useState(false);
 
   useEffect(() => {
     if (!athleteId) {
+      if (isDemoMode()) {
+        setSnapshot(DEMO_SNAPSHOT);
+        setBenchmarkTimes(DEMO_BENCHMARK_TIMES);
+        setDisplayName(DEMO_DISPLAY_NAME);
+        setIsMock(true);
+      }
       setLoading(false);
       return;
     }
@@ -91,19 +106,32 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
 
       const recoveryToday = wear?.recovery_pct ? wear.recovery_pct / 100 : 0.7;
 
-      setBenchmarkTimes(Object.fromEntries(benchBy));
-      setSnapshot({
-        age,
-        engineScore,
-        strengthScore,
-        gymnasticsScore: gymScore,
-        recoveryToday,
-        redlinePct: Number(fatigue?.redline_pct ?? 0.9),
-        recoveryFactor: Number(fatigue?.recovery_factor ?? 1.0),
-      });
+      const hasRealData =
+        (lifts?.length ?? 0) > 0 ||
+        (gym?.length ?? 0) > 0 ||
+        (benches?.length ?? 0) > 0;
+
+      if (!hasRealData) {
+        // New athlete with no records: show demo so the engine UI is meaningful
+        setSnapshot(DEMO_SNAPSHOT);
+        setBenchmarkTimes(DEMO_BENCHMARK_TIMES);
+        setIsMock(true);
+      } else {
+        setBenchmarkTimes(Object.fromEntries(benchBy));
+        setSnapshot({
+          age,
+          engineScore,
+          strengthScore,
+          gymnasticsScore: gymScore,
+          recoveryToday,
+          redlinePct: Number(fatigue?.redline_pct ?? 0.9),
+          recoveryFactor: Number(fatigue?.recovery_factor ?? 1.0),
+        });
+        setIsMock(false);
+      }
       setLoading(false);
     })();
   }, [athleteId]);
 
-  return { snapshot, benchmarkTimes, displayName, loading };
+  return { snapshot, benchmarkTimes, displayName, loading, isMock };
 }
