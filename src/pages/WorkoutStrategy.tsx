@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import RoleBadge from "@/components/RoleBadge";
 import FatigueTimeline from "@/components/athlete/FatigueTimeline";
