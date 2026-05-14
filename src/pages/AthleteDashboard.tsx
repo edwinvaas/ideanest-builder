@@ -3,6 +3,7 @@ import PerformanceRadar from "@/components/athlete/PerformanceRadar";
 import LimiterCard from "@/components/athlete/LimiterCard";
 import MetricCards from "@/components/athlete/MetricCards";
 import AdviceSection from "@/components/athlete/AdviceSection";
+import RecoveryWidget from "@/components/athlete/RecoveryWidget";
 import RoleBadge from "@/components/RoleBadge";
 import { Button } from "@/components/ui/button";
 import { Target, ArrowRight } from "lucide-react";
@@ -51,6 +52,10 @@ const AthleteDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             <PerformanceRadar />
             <LimiterCard />
+          </div>
+
+          <div className="mt-6">
+            <RecoveryWidget />
           </div>
 
           <AdviceSection />
