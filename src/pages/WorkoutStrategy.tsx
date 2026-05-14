@@ -145,11 +145,11 @@ const WorkoutStrategy = () => {
             <p className="text-muted-foreground text-sm">
               Voorspelde finish:{" "}
               <span className="font-mono text-foreground">
-                {formatSeconds(plan.predictedTimeSeconds)}
+                {formatSeconds(protocol.predictedTimeSeconds)}
               </span>{" "}
               • Fatigue point:{" "}
               <span className="font-mono text-foreground">
-                {formatSeconds(plan.fatiguePointSeconds)}
+                {formatSeconds(protocol.fatiguePointSeconds)}
               </span>
             </p>
           </div>
