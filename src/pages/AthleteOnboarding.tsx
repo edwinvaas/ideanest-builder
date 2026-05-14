@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAthlete, AthleteProfile } from "@/contexts/AthleteContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { persistOnboarding } from "@/lib/onboardingSync";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { ChevronRight, ChevronLeft, User, Trophy, Dumbbell, Activity } from "lucide-react";
+import { ChevronRight, ChevronLeft, User, Trophy, Dumbbell, Activity, Loader2 } from "lucide-react";
 
 const steps = [
   { title: "Personal Info", icon: User },
@@ -19,23 +22,40 @@ const experienceLevels = [
   { value: "intermediate", label: "Intermediate", desc: "1-3 years CrossFit" },
   { value: "advanced", label: "Advanced", desc: "3-5 years CrossFit" },
   { value: "elite", label: "Elite", desc: "5+ years / competition" },
-];
+] as const;
 
 const goalOptions = [
   "Competition",
   "Strength",
   "Weight Loss",
   "Endurance",
-  " ",
   "Health",
   "Olympic Weightlifting",
   "Longevity",
 ];
 
+// UI key → DB slug mapping
+const LIFT_SLUGS: Record<string, string> = {
+  backSquat: "back-squat",
+  deadlift: "deadlift",
+  cleanAndJerk: "clean-and-jerk",
+  snatch: "snatch",
+  strictPress: "strict-press",
+};
+const GYM_SLUGS: Record<string, string> = {
+  maxPullups: "pull-up",
+  maxHSPU: "handstand-push-up",
+  maxMuscleUps: "ring-muscle-up",
+  maxDoubleUnders: "double-under",
+};
+
 const AthleteOnboarding = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const { setProfile, setIsOnboarded } = useAthlete();
   const [step, setStep] = useState(0);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<AthleteProfile>({
     name: "",
     age: 25,
@@ -57,10 +77,57 @@ const AthleteOnboarding = () => {
     }));
   };
 
-  const handleFinish = () => {
-    setProfile(form);
-    setIsOnboarded(true);
-    navigate("/athlete");
+  const handleFinish = async () => {
+    if (!user) {
+      toast({
+        title: "Niet ingelogd",
+        description: "Log opnieuw in om je profiel op te slaan.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSaving(true);
+    try {
+      await persistOnboarding({
+        userId: user.id,
+        displayName: form.name || user.email?.split("@")[0] || "Athlete",
+        age: form.age,
+        gender:
+          form.gender.toLowerCase() === "male"
+            ? "male"
+            : form.gender.toLowerCase() === "female"
+              ? "female"
+              : "other",
+        experience:
+          (form.experience as "beginner" | "intermediate" | "advanced" | "elite") ||
+          "beginner",
+        boxName: form.box,
+        goals: form.goals,
+        benchmarks: form.benchmarks as unknown as Record<string, string>,
+        maxLifts: Object.fromEntries(
+          Object.entries(form.maxLifts).map(([k, v]) => [LIFT_SLUGS[k] ?? k, v]),
+        ),
+        gymnastics: Object.fromEntries(
+          Object.entries(form.gymnastics).map(([k, v]) => [GYM_SLUGS[k] ?? k, v]),
+        ),
+      });
+      // Hydrate local context for legacy components
+      setProfile(form);
+      setIsOnboarded(true);
+      toast({
+        title: "Profiel opgeslagen",
+        description: "Welkom in BoxBrain — je startwaarden zijn vastgelegd.",
+      });
+      navigate("/athlete");
+    } catch (e: any) {
+      toast({
+        title: "Opslaan mislukt",
+        description: e?.message ?? "Onbekende fout",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -271,7 +338,7 @@ const AthleteOnboarding = () => {
               <Button
                 variant="ghost"
                 onClick={() => setStep((s) => s - 1)}
-                disabled={step === 0}
+                disabled={step === 0 || saving}
                 className="gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -284,8 +351,9 @@ const AthleteOnboarding = () => {
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               ) : (
-                <Button onClick={handleFinish} className="gap-2 bg-gradient-fire hover:opacity-90">
-                  Start my journey 🚀
+                <Button onClick={handleFinish} disabled={saving} className="gap-2 bg-gradient-fire hover:opacity-90">
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {saving ? "Opslaan…" : "Start my journey 🚀"}
                 </Button>
               )}
             </div>
