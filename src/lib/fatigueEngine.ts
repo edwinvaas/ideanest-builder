@@ -629,7 +629,7 @@ export function buildTimeline(
   const protocol = plan.protocols[protocolId];
   const points: TimelinePoint[] = [];
   let currentHr = Math.round(plan.estimatedMaxHr * 0.55);
-  for (let t = 0; t <= plan.predictedTimeSeconds; t += resolution) {
+  for (let t = 0; t <= protocol.predictedTimeSeconds; t += resolution) {
     const split =
       protocol.splits.find((s) => t >= s.startSec && t <= s.endSec) ??
       protocol.splits[protocol.splits.length - 1];
