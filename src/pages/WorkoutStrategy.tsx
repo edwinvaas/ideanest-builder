@@ -11,8 +11,7 @@ import { useTodaySession } from "@/hooks/useTodaySession";
 import { buildStrategy } from "@/lib/fatigueEngine";
 import { formatSeconds } from "@/lib/onboardingSync";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, Zap, Save, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Activity, Loader2 } from "lucide-react";
 
 const FALLBACK_DEMAND = {
   expectedTimeSeconds: 600,
@@ -24,10 +23,8 @@ const FALLBACK_DEMAND = {
 
 const WorkoutStrategy = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const { snapshot, displayName, loading } = useAthleteSnapshot(user?.id ?? null);
+  const { snapshot, loading } = useAthleteSnapshot(user?.id ?? null);
   const { session, loading: sessionLoading } = useTodaySession();
-  const [persisting, setPersisting] = useState(false);
 
   const demand = useMemo(() => {
     if (!session) return FALLBACK_DEMAND;
