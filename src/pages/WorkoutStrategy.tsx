@@ -46,13 +46,13 @@ const WorkoutStrategy = () => {
 
   // Fetch the most recently analyzed WOD for this box (RLS handles box scoping)
   useEffect(() => {
-    supabase
+    (supabase as any)
       .from("wod_analyses")
       .select("wod_id")
       .order("analyzed_at", { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data }: { data: { wod_id?: string } | null }) => {
         if (data?.wod_id) setLatestWodId(data.wod_id);
       });
   }, []);
