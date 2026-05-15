@@ -1,100 +1,26 @@
 {
-  "performance_archetypes": [
-    {
-      "level": "Beginner",
-      "description": "Nieuw bij CrossFit (0-6 maanden), focus op techniek en basisconditie.",
-      "strength_ratios_bw": {
-        "back_squat": 0.75,
-        "deadlift": 1.0,
-        "bench_press": 0.5,
-        "clean_and_jerk": 0.4,
-        "snatch": 0.3
-      },
-      "cardio_paces": {
-        "row_2km": "2:15 - 2:30 /500m",
-        "run_5km": "6:00 - 7:00 /km",
-        "echo_bike_10min_cals": "40-60"
-      },
-      "gymnastics_unbroken_max": {
-        "pull_ups": 0,
-        "push_ups": 5,
-        "toes_to_bar": 0,
-        "air_squats": 20
-      },
-      "movement_cycle_times_sec": {
-        "burpee": 5.0,
-        "wallball": 3.5,
-        "kettlebell_swing": 2.5,
-        "box_jump_step_down": 4.0
-      },
-      "recovery_profile": {
-        "cns_fatigue_threshold": "Low",
-        "recommended_rest_multiplier": 1.5
-      }
+  "age_divisions": ["14-15", "16-17", "18-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70+"],
+  "degradation_matrix": {
+    "18-34": { "strength": 1.0, "cardio": 1.0 },
+    "35-44": { "strength": 0.98, "cardio": 1.03 },
+    "45-54": { "strength": 0.93, "cardio": 1.10 },
+    "55-64": { "strength": 0.85, "cardio": 1.20 },
+    "65-70+": { "strength": 0.75, "cardio": 1.35 }
+  },
+  "base_benchmarks": {
+    "Intermediate": {
+      "back_squat_bw": 1.25,
+      "deadlift_bw": 1.5,
+      "row_2km_pace": "2:00",
+      "pull_ups_unbroken": 12,
+      "burpee_cycle_time": 3.5
     },
-    {
-      "level": "Intermediate",
-      "description": "Ervaren recreatieve atleet (1-3 jaar), beheerst de meeste RX bewegingen.",
-      "strength_ratios_bw": {
-        "back_squat": 1.25,
-        "deadlift": 1.5,
-        "bench_press": 0.9,
-        "clean_and_jerk": 0.8,
-        "snatch": 0.6
-      },
-      "cardio_paces": {
-        "row_2km": "1:55 - 2:05 /500m",
-        "run_5km": "4:45 - 5:15 /km",
-        "echo_bike_10min_cals": "80-110"
-      },
-      "gymnastics_unbroken_max": {
-        "pull_ups": 12,
-        "push_ups": 25,
-        "toes_to_bar": 10,
-        "air_squats": 50
-      },
-      "movement_cycle_times_sec": {
-        "burpee": 3.5,
-        "wallball": 3.0,
-        "kettlebell_swing": 2.0,
-        "box_jump_step_down": 3.0
-      },
-      "recovery_profile": {
-        "cns_fatigue_threshold": "Medium",
-        "recommended_rest_multiplier": 1.0
-      }
-    },
-    {
-      "level": "Advanced/RX",
-      "description": "Box-competitie niveau, beheerst alle complexe skills (MU, HS Walk).",
-      "strength_ratios_bw": {
-        "back_squat": 1.75,
-        "deadlift": 2.0,
-        "bench_press": 1.2,
-        "clean_and_jerk": 1.1,
-        "snatch": 0.9
-      },
-      "cardio_paces": {
-        "row_2km": "1:40 - 1:48 /500m",
-        "run_5km": "4:00 - 4:30 /km",
-        "echo_bike_10min_cals": "140-170"
-      },
-      "gymnastics_unbroken_max": {
-        "pull_ups": 30,
-        "push_ups": 50,
-        "toes_to_bar": 25,
-        "air_squats": 100
-      },
-      "movement_cycle_times_sec": {
-        "burpee": 2.5,
-        "wallball": 2.5,
-        "kettlebell_swing": 1.5,
-        "box_jump_step_down": 2.0
-      },
-      "recovery_profile": {
-        "cns_fatigue_threshold": "High",
-        "recommended_rest_multiplier": 0.8
-      }
+    "Advanced_RX": {
+      "back_squat_bw": 1.75,
+      "deadlift_bw": 2.0,
+      "row_2km_pace": "1:45",
+      "pull_ups_unbroken": 30,
+      "burpee_cycle_time": 2.5
     }
-  ]
+  }
 }
