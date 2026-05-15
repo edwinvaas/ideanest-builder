@@ -171,7 +171,7 @@ export function useAthleteSnapshot(
       }
       setLoading(false);
     })();
-  }, [athleteId]);
+  }, [athleteId, localKey]);
 
   return { snapshot, benchmarkTimes, displayName, loading, isMock };
 }
