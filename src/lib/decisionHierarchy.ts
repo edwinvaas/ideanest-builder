@@ -22,7 +22,8 @@ import {
   type WodDemand,
   type WodMovement,
 } from "@/lib/fatigueEngine";
-import { cnsMax1RmPct } from "@/lib/cnsBuffer";
+import { cnsMax1RmPct, repDensityFactorFor } from "@/lib/cnsBuffer";
+import { analyzeAnatomy, type AnatomyReport } from "@/lib/anatomy";
 
 export type Goal = "competition" | "longevity" | "health" | "strength" | "weightlifting";
 
