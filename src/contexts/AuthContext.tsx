@@ -20,8 +20,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) {
+        setSession(data.session);
+      } else {
+        // Auto-create an anonymous session so the app always has a user id
+        // and local data can be persisted (no "Niet ingelogd" blockers).
+        try {
+          const { data: anon } = await supabase.auth.signInAnonymously();
+          setSession(anon.session ?? null);
+        } catch {
+          setSession(null);
+        }
+      }
       setLoading(false);
     });
     return () => sub.subscription.unsubscribe();

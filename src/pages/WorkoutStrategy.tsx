@@ -6,17 +6,25 @@ import PostWodFeedback from "@/components/athlete/PostWodFeedback";
 import GoalAlignmentBadge from "@/components/athlete/GoalAlignmentBadge";
 import ScalingProposalCard from "@/components/athlete/ScalingProposal";
 import BottleneckAlert from "@/components/athlete/BottleneckAlert";
+import ProgrammingSourceSelector from "@/components/athlete/ProgrammingSourceSelector";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthleteSnapshot } from "@/hooks/useAthleteSnapshot";
-import { useTodaySession } from "@/hooks/useTodaySession";
+import { useTodaySession, type WorkoutSession } from "@/hooks/useTodaySession";
 import { useStrategyContext } from "@/hooks/useStrategyContext";
-import { type ProtocolId } from "@/lib/fatigueEngine";
+import { useAthlete } from "@/contexts/AthleteContext";
+import { type ProtocolId, type StrategyPlan, type PacingProtocol } from "@/lib/fatigueEngine";
 import { runDecisionPipeline, type Goal } from "@/lib/decisionHierarchy";
-import { formatSeconds } from "@/lib/onboardingSync";
+import { formatSeconds, parseTimeToSeconds } from "@/lib/onboardingSync";
 import { supabase } from "@/integrations/supabase/client";
 import { isDemoMode, DEMO_MOVEMENTS } from "@/lib/demoMode";
+import {
+  getDailyWod,
+  getStoredSource,
+  setStoredSource,
+  type ProgrammingSourceId,
+} from "@/lib/programmingSources";
 import {
   Activity,
   AlertTriangle,
@@ -45,10 +53,36 @@ const PROTOCOL_META: Record<ProtocolId, { icon: typeof Target; tone: string }> =
 
 const WorkoutStrategy = () => {
   const { user } = useAuth();
-  const { snapshot: rawSnapshot, loading, isMock } = useAthleteSnapshot(user?.id ?? null);
-  const { session, loading: sessionLoading } = useTodaySession();
+  const { profile: localProfile, isOnboarded } = useAthlete();
+  const { snapshot: rawSnapshot, loading, isMock, benchmarkTimes } = useAthleteSnapshot(
+    user?.id ?? null,
+    isOnboarded ? localProfile : null,
+  );
+  const { session: dbSession, loading: sessionLoading } = useTodaySession();
   const ctx = useStrategyContext(user?.id ?? null);
   const demo = isDemoMode();
+
+  // ─── Programming source selector ───
+  const [source, setSource] = useState<ProgrammingSourceId>(() => getStoredSource());
+  useEffect(() => setStoredSource(source), [source]);
+  const sourceWod = useMemo(() => (source === "manual" ? null : getDailyWod(source)), [source]);
+
+  // The active session: source-driven WOD overrides today's coached session
+  const session: (WorkoutSession & { benchmark_slug?: string }) | null =
+    sourceWod ?? dbSession;
+  const benchmarkSlug = (session as any)?.benchmark_slug as string | undefined;
+
+  // ─── Truth Engine inputs (athlete's own time for the loaded benchmark) ───
+  const prSeconds = benchmarkSlug ? benchmarkTimes[benchmarkSlug] ?? null : null;
+  const [currentInput, setCurrentInput] = useState("");
+  // Reset input when the loaded benchmark changes
+  useEffect(() => {
+    setCurrentInput(prSeconds ? formatSeconds(prSeconds) : "");
+  }, [benchmarkSlug, prSeconds]);
+  const truthSeconds = useMemo(() => {
+    const parsed = parseTimeToSeconds(currentInput);
+    return parsed ?? prSeconds;
+  }, [currentInput, prSeconds]);
 
   // Override recovery with effective (wearable → wellness → baseline)
   const snapshot = useMemo(() => {
@@ -82,7 +116,7 @@ const WorkoutStrategy = () => {
   const activeProtocol: ProtocolId = protocolId ?? "smart_engine";
 
   // Stage 5 of pipeline runs full Decision Hierarchy
-  const ctxPlan = useMemo(() => {
+  const rawCtxPlan = useMemo(() => {
     if (!snapshot || !ctx.ready) return null;
     const goals: Goal[] = ctx.goals.length
       ? ctx.goals
@@ -100,6 +134,41 @@ const WorkoutStrategy = () => {
     });
   }, [snapshot, ctx.ready, ctx.goals, demand, session, activeProtocol, demo]);
 
+  // ─── Truth Engine: rescale plan so the athlete's own time drives finish/fatigue ───
+  const ctxPlan = useMemo(() => {
+    if (!rawCtxPlan) return null;
+    if (!truthSeconds) return rawCtxPlan;
+    const baseline = rawCtxPlan.plan.protocols.smart_engine.predictedTimeSeconds;
+    if (!baseline) return rawCtxPlan;
+    const ratio = truthSeconds / baseline;
+    if (Math.abs(ratio - 1) < 0.001) return rawCtxPlan;
+    const scaleProtocol = (p: PacingProtocol): PacingProtocol => ({
+      ...p,
+      predictedTimeSeconds: Math.round(p.predictedTimeSeconds * ratio),
+      fatiguePointSeconds: Math.round(p.fatiguePointSeconds * ratio),
+      splits: p.splits.map((s) => ({
+        ...s,
+        startSec: Math.round(s.startSec * ratio),
+        endSec: Math.round(s.endSec * ratio),
+      })),
+    });
+    const protocols = (Object.keys(rawCtxPlan.plan.protocols) as ProtocolId[]).reduce(
+      (acc, id) => {
+        acc[id] = scaleProtocol(rawCtxPlan.plan.protocols[id]);
+        return acc;
+      },
+      {} as Record<ProtocolId, PacingProtocol>,
+    );
+    const newPlan: StrategyPlan = {
+      ...rawCtxPlan.plan,
+      protocols,
+      splits: protocols[rawCtxPlan.plan.recommendedProtocol].splits,
+      predictedTimeSeconds: protocols.smart_engine.predictedTimeSeconds,
+      fatiguePointSeconds: protocols.smart_engine.fatiguePointSeconds,
+    };
+    return { ...rawCtxPlan, plan: newPlan };
+  }, [rawCtxPlan, truthSeconds]);
+
   const plan = ctxPlan?.plan ?? null;
   const recommended = plan?.recommendedProtocol ?? "smart_engine";
   const finalActiveProtocol: ProtocolId = protocolId ?? recommended;
@@ -107,6 +176,8 @@ const WorkoutStrategy = () => {
   // Persist generated strategy + chosen protocol so coach can read it
   useEffect(() => {
     if (!plan || !session || !user || demo) return;
+    // Source-driven (programming) WODs are not real DB sessions — skip persist
+    if (sourceWod) return;
     (supabase as any)
       .from("athlete_strategies")
       .upsert(
@@ -163,6 +234,16 @@ const WorkoutStrategy = () => {
         <RoleBadge
           role="athlete"
           description="Pre-flight briefing — jouw profiel toegepast op vandaag's WOD"
+        />
+
+        <ProgrammingSourceSelector
+          source={source}
+          onSourceChange={setSource}
+          benchmarkSlug={benchmarkSlug}
+          benchmarkLabel={session?.title}
+          prSeconds={prSeconds}
+          currentInput={currentInput}
+          onCurrentInputChange={setCurrentInput}
         />
 
         {/* Mission header */}
