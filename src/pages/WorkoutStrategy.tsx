@@ -6,17 +6,25 @@ import PostWodFeedback from "@/components/athlete/PostWodFeedback";
 import GoalAlignmentBadge from "@/components/athlete/GoalAlignmentBadge";
 import ScalingProposalCard from "@/components/athlete/ScalingProposal";
 import BottleneckAlert from "@/components/athlete/BottleneckAlert";
+import ProgrammingSourceSelector from "@/components/athlete/ProgrammingSourceSelector";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthleteSnapshot } from "@/hooks/useAthleteSnapshot";
-import { useTodaySession } from "@/hooks/useTodaySession";
+import { useTodaySession, type WorkoutSession } from "@/hooks/useTodaySession";
 import { useStrategyContext } from "@/hooks/useStrategyContext";
-import { type ProtocolId } from "@/lib/fatigueEngine";
+import { useAthlete } from "@/contexts/AthleteContext";
+import { type ProtocolId, type StrategyPlan, type PacingProtocol } from "@/lib/fatigueEngine";
 import { runDecisionPipeline, type Goal } from "@/lib/decisionHierarchy";
-import { formatSeconds } from "@/lib/onboardingSync";
+import { formatSeconds, parseTimeToSeconds } from "@/lib/onboardingSync";
 import { supabase } from "@/integrations/supabase/client";
 import { isDemoMode, DEMO_MOVEMENTS } from "@/lib/demoMode";
+import {
+  getDailyWod,
+  getStoredSource,
+  setStoredSource,
+  type ProgrammingSourceId,
+} from "@/lib/programmingSources";
 import {
   Activity,
   AlertTriangle,
