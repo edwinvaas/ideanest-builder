@@ -1,4 +1,5 @@
-import type { AthleteSnapshot } from "@/lib/fatigueEngine";
+import type { AthleteSnapshot, WodMovement } from "@/lib/fatigueEngine";
+import { movementBalanceCnsAdjust } from "@/lib/anatomy";
 
 /**
  * CNS volume cap: returns the safe upper-bound % of 1RM the athlete should
