@@ -313,6 +313,12 @@ const WorkoutStrategy = () => {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
+                {ctxPlan.microRestSec > 0 && (
+                  <Badge variant="outline" className="border-warning/40 text-warning">
+                    <Timer className="w-3 h-3 mr-1" />
+                    Grip micro-rest {ctxPlan.microRestSec}s
+                  </Badge>
+                )}
                 {plan.interference.posteriorTax >= 0.5 && (
                   <Badge variant="outline" className="border-warning/40 text-warning">
                     Posterior chain ↑{Math.abs(Math.round(plan.interference.fatigueShiftPct * 100))}%
