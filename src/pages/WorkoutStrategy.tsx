@@ -5,6 +5,7 @@ import FatigueTimelineInteractive from "@/components/athlete/FatigueTimelineInte
 import PostWodFeedback from "@/components/athlete/PostWodFeedback";
 import GoalAlignmentBadge from "@/components/athlete/GoalAlignmentBadge";
 import ScalingProposalCard from "@/components/athlete/ScalingProposal";
+import BottleneckAlert from "@/components/athlete/BottleneckAlert";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
