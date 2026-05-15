@@ -119,7 +119,7 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
       if (!hasRealData) {
         // No personal benchmarks — fall back to the normative archetype
         // matched to the athlete's stated experience level.
-        const archetype = archetypeForExperience(profile?.experience);
+        const archetype = archetypeForExperience(profile?.experience, age);
         setSnapshot(snapshotFromArchetype(archetype, age));
         setBenchmarkTimes(benchmarkTimesFromArchetype(archetype));
         setIsMock(true);
