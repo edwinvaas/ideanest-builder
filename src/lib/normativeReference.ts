@@ -3,103 +3,123 @@ import type { AthleteSnapshot } from "./fatigueEngine";
 
 export type ArchetypeLevel = "Beginner" | "Intermediate" | "Advanced/RX";
 
+interface BaseBenchmark {
+  back_squat_bw: number;
+  deadlift_bw: number;
+  row_2km_pace: string;
+  pull_ups_unbroken: number;
+  burpee_cycle_time: number;
+}
+
+interface DegradationFactor {
+  strength: number;
+  cardio: number;
+}
+
 export interface PerformanceArchetype {
   level: ArchetypeLevel;
-  description: string;
-  strength_ratios_bw: Record<string, number>;
-  cardio_paces: Record<string, string>;
-  gymnastics_unbroken_max: Record<string, number>;
-  movement_cycle_times_sec: Record<string, number>;
-  recovery_profile: {
-    cns_fatigue_threshold: "Low" | "Medium" | "High";
-    recommended_rest_multiplier: number;
+  base: BaseBenchmark;
+  /** Strength multiplier from age degradation (1.0 = peak) */
+  strengthFactor: number;
+  /** Cardio multiplier from age degradation (>1 = slower) */
+  cardioFactor: number;
+}
+
+const BASE = normative.base_benchmarks as Record<string, BaseBenchmark>;
+const MATRIX = normative.degradation_matrix as Record<string, DegradationFactor>;
+
+// Beginner derived as ~60% of Intermediate strength, ~115% slower cardio
+const BEGINNER_BASE: BaseBenchmark = {
+  back_squat_bw: BASE.Intermediate.back_squat_bw * 0.6,
+  deadlift_bw: BASE.Intermediate.deadlift_bw * 0.65,
+  row_2km_pace: "2:20",
+  pull_ups_unbroken: 0,
+  burpee_cycle_time: BASE.Intermediate.burpee_cycle_time * 1.4,
+};
+
+function parsePace(pace: string): number {
+  const m = pace.match(/(\d+):(\d+)/);
+  if (!m) return 120;
+  return parseInt(m[1]) * 60 + parseInt(m[2]);
+}
+
+function degradationForAge(age: number): DegradationFactor {
+  if (age >= 65) return MATRIX["65-70+"];
+  if (age >= 55) return MATRIX["55-64"];
+  if (age >= 45) return MATRIX["45-54"];
+  if (age >= 35) return MATRIX["35-44"];
+  return MATRIX["18-34"];
+}
+
+/** Map experience tier to archetype, applying age-based degradation */
+export function archetypeForExperience(
+  experience?: string | null,
+  age = 30,
+): PerformanceArchetype {
+  const e = (experience ?? "").toLowerCase();
+  const level: ArchetypeLevel =
+    e === "advanced" || e === "elite"
+      ? "Advanced/RX"
+      : e === "intermediate"
+        ? "Intermediate"
+        : "Beginner";
+  const base =
+    level === "Advanced/RX"
+      ? BASE.Advanced_RX
+      : level === "Intermediate"
+        ? BASE.Intermediate
+        : BEGINNER_BASE;
+  const deg = degradationForAge(age);
+  return {
+    level,
+    base,
+    strengthFactor: deg.strength,
+    cardioFactor: deg.cardio,
   };
 }
 
-const ARCHETYPES = normative.performance_archetypes as PerformanceArchetype[];
-
-export function getArchetypes(): PerformanceArchetype[] {
-  return ARCHETYPES;
-}
-
-/** Map experience tier to archetype */
-export function archetypeForExperience(
-  experience?: string | null,
-): PerformanceArchetype {
-  const e = (experience ?? "").toLowerCase();
-  if (e === "advanced" || e === "elite") return ARCHETYPES[2];
-  if (e === "intermediate") return ARCHETYPES[1];
-  return ARCHETYPES[0];
-}
-
-/** Parse "1:55 - 2:05 /500m" → midpoint seconds per 500m */
-function midRangeSeconds(range: string): number {
-  const m = range.match(/(\d+):(\d+)\s*-\s*(\d+):(\d+)/);
-  if (!m) return 0;
-  const a = parseInt(m[1]) * 60 + parseInt(m[2]);
-  const b = parseInt(m[3]) * 60 + parseInt(m[4]);
-  return (a + b) / 2;
-}
-
-/**
- * Derive a synthetic AthleteSnapshot from an archetype so engine UI works
- * for athletes without their own benchmarks.
- */
 export function snapshotFromArchetype(
   archetype: PerformanceArchetype,
   age = 30,
 ): AthleteSnapshot {
-  const idx = ARCHETYPES.indexOf(archetype); // 0..2
-  const base = (idx + 1) / 3; // 0.33 / 0.67 / 1.0
+  const idx =
+    archetype.level === "Advanced/RX" ? 2 : archetype.level === "Intermediate" ? 1 : 0;
+  const base = (idx + 1) / 3;
+  const bs = archetype.base.back_squat_bw * archetype.strengthFactor;
+  const dl = archetype.base.deadlift_bw * archetype.strengthFactor;
   return {
     age,
-    engineScore: Math.min(1, base * 0.95),
-    strengthScore: Math.min(
-      1,
-      (archetype.strength_ratios_bw.back_squat / 2.0 +
-        archetype.strength_ratios_bw.deadlift / 2.5) /
-        2,
-    ),
-    gymnasticsScore: Math.min(
-      1,
-      (archetype.gymnastics_unbroken_max.pull_ups / 25 +
-        archetype.gymnastics_unbroken_max.toes_to_bar / 20) /
-        2,
-    ),
+    engineScore: Math.min(1, (base * 0.95) / archetype.cardioFactor),
+    strengthScore: Math.min(1, (bs / 2.0 + dl / 2.5) / 2),
+    gymnasticsScore: Math.min(1, archetype.base.pull_ups_unbroken / 25),
     recoveryToday: 0.7,
     redlinePct: idx === 2 ? 0.92 : idx === 1 ? 0.88 : 0.82,
-    recoveryFactor: 1 / archetype.recovery_profile.recommended_rest_multiplier,
+    recoveryFactor: 1.0,
     correctionFactor: 1.0,
     mentalResilience: 0.4 + idx * 0.2,
     unbrokenByMovement: {
-      "pull-up": archetype.gymnastics_unbroken_max.pull_ups,
-      "push-up": archetype.gymnastics_unbroken_max.push_ups,
-      "toes-to-bar": archetype.gymnastics_unbroken_max.toes_to_bar,
-      "air-squat": archetype.gymnastics_unbroken_max.air_squats,
+      "pull-up": archetype.base.pull_ups_unbroken,
     },
   };
 }
 
-/** Reference benchmark times derived from cardio paces (rough estimates) */
 export function benchmarkTimesFromArchetype(
   archetype: PerformanceArchetype,
 ): Record<string, number> {
-  const rowSecPer500 = midRangeSeconds(archetype.cardio_paces.row_2km);
   const fran =
-    archetype.level === "Advanced/RX"
-      ? 240
-      : archetype.level === "Intermediate"
-        ? 360
-        : 540;
+    archetype.level === "Advanced/RX" ? 240 : archetype.level === "Intermediate" ? 360 : 540;
   const helen =
-    archetype.level === "Advanced/RX"
-      ? 540
-      : archetype.level === "Intermediate"
-        ? 720
-        : 960;
+    archetype.level === "Advanced/RX" ? 540 : archetype.level === "Intermediate" ? 720 : 960;
+  const rowSecPer500 = parsePace(archetype.base.row_2km_pace) * archetype.cardioFactor;
   return {
-    fran,
-    helen,
+    fran: fran * archetype.cardioFactor,
+    helen: helen * archetype.cardioFactor,
     "row-2km": rowSecPer500 * 4,
   };
+}
+
+export function getArchetypes(): PerformanceArchetype[] {
+  return (["Beginner", "Intermediate", "Advanced/RX"] as ArchetypeLevel[]).map((lvl) =>
+    archetypeForExperience(lvl === "Advanced/RX" ? "advanced" : lvl.toLowerCase(), 30),
+  );
 }
