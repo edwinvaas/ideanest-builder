@@ -316,7 +316,7 @@ const WorkoutStrategy = () => {
               const p = plan.protocols[pid];
               const meta = PROTOCOL_META[pid];
               const Icon = meta.icon;
-              const active = pid === activeProtocol;
+              const active = pid === finalActiveProtocol;
               const recommended = pid === plan.recommendedProtocol;
               return (
                 <button
@@ -349,7 +349,7 @@ const WorkoutStrategy = () => {
         </div>
 
         {/* Interactive timeline */}
-        <FatigueTimelineInteractive plan={plan} protocolId={activeProtocol} />
+        <FatigueTimelineInteractive plan={plan} protocolId={finalActiveProtocol} />
 
         {/* Pacing narrative */}
         <div className="rounded-xl bg-gradient-card border border-border p-6 shadow-card">
