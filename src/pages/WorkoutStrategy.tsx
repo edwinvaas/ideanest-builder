@@ -236,6 +236,16 @@ const WorkoutStrategy = () => {
           description="Pre-flight briefing — jouw profiel toegepast op vandaag's WOD"
         />
 
+        <ProgrammingSourceSelector
+          source={source}
+          onSourceChange={setSource}
+          benchmarkSlug={benchmarkSlug}
+          benchmarkLabel={session?.title}
+          prSeconds={prSeconds}
+          currentInput={currentInput}
+          onCurrentInputChange={setCurrentInput}
+        />
+
         {/* Mission header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
