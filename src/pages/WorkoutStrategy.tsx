@@ -259,6 +259,11 @@ const WorkoutStrategy = () => {
 
         {ctxPlan.proposal && <ScalingProposalCard proposal={ctxPlan.proposal} />}
 
+        <BottleneckAlert
+          anatomy={ctxPlan.anatomy}
+          transitionBufferSec={ctxPlan.anatomy.transitionBufferSec}
+        />
+
         {ctxPlan.intensityCeiling !== "z3" && (
           <div className="rounded-lg border border-warning/40 bg-warning/5 p-3 flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
