@@ -44,9 +44,18 @@ const PROTOCOL_META: Record<ProtocolId, { icon: typeof Target; tone: string }> =
 
 const WorkoutStrategy = () => {
   const { user } = useAuth();
-  const { snapshot, loading, isMock } = useAthleteSnapshot(user?.id ?? null);
+  const { snapshot: rawSnapshot, loading, isMock } = useAthleteSnapshot(user?.id ?? null);
   const { session, loading: sessionLoading } = useTodaySession();
+  const ctx = useStrategyContext(user?.id ?? null);
   const demo = isDemoMode();
+
+  // Override recovery with effective (wearable → wellness → baseline)
+  const snapshot = useMemo(() => {
+    if (!rawSnapshot) return null;
+    return ctx.ready
+      ? { ...rawSnapshot, recoveryToday: ctx.effectiveRecovery }
+      : rawSnapshot;
+  }, [rawSnapshot, ctx.ready, ctx.effectiveRecovery]);
 
   const demand = useMemo(() => {
     const base = session
@@ -64,19 +73,35 @@ const WorkoutStrategy = () => {
       : FALLBACK_DEMAND;
     return {
       ...base,
-      // Demo mode injects parsed movements so the interference matrix has data
       movements: demo ? DEMO_MOVEMENTS : undefined,
     };
   }, [session, demo]);
 
-  const plan = useMemo(
-    () => (snapshot ? buildStrategy(snapshot, demand) : null),
-    [snapshot, demand],
-  );
-
   const [protocolId, setProtocolId] = useState<ProtocolId | null>(null);
-  const activeProtocol: ProtocolId =
-    protocolId ?? plan?.recommendedProtocol ?? "smart_engine";
+  const activeProtocol: ProtocolId = protocolId ?? "smart_engine";
+
+  // Stage 5 of pipeline runs full Decision Hierarchy
+  const ctxPlan = useMemo(() => {
+    if (!snapshot || !ctx.ready) return null;
+    const goals: Goal[] = ctx.goals.length
+      ? ctx.goals
+      : (demo ? (["competition"] as Goal[]) : []);
+    return runDecisionPipeline({
+      snapshot,
+      demand,
+      stimulus: {
+        intended_stimulus_min: session?.intended_stimulus_min ?? null,
+        intended_stimulus_max: session?.intended_stimulus_max ?? null,
+        stimulus_description: session?.stimulus_description ?? null,
+      },
+      goals,
+      activeProtocol,
+    });
+  }, [snapshot, ctx.ready, ctx.goals, demand, session, activeProtocol, demo]);
+
+  const plan = ctxPlan?.plan ?? null;
+  const recommended = plan?.recommendedProtocol ?? "smart_engine";
+  const finalActiveProtocol: ProtocolId = protocolId ?? recommended;
 
   // Persist generated strategy + chosen protocol so coach can read it
   useEffect(() => {
@@ -89,17 +114,17 @@ const WorkoutStrategy = () => {
           athlete_id: user.id,
           anaerobic_threshold_bpm: plan.anaerobicThresholdBpm,
           redline_bpm: plan.redlineBpm,
-          fatigue_point_seconds: plan.protocols[activeProtocol].fatiguePointSeconds,
-          splits: plan.protocols[activeProtocol].splits as any,
+          fatigue_point_seconds: plan.protocols[finalActiveProtocol].fatiguePointSeconds,
+          splits: plan.protocols[finalActiveProtocol].splits as any,
           advice: plan.advice,
-          chosen_protocol: activeProtocol,
+          chosen_protocol: finalActiveProtocol,
         },
         { onConflict: "session_id,athlete_id" },
       )
       .then(() => undefined);
-  }, [plan, session, user, activeProtocol, demo]);
+  }, [plan, session, user, finalActiveProtocol, demo]);
 
-  if (loading || sessionLoading) {
+  if (loading || sessionLoading || !ctx.ready) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -110,7 +135,7 @@ const WorkoutStrategy = () => {
     );
   }
 
-  if (!snapshot || !plan) {
+  if (!snapshot || !plan || !ctxPlan) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -123,7 +148,8 @@ const WorkoutStrategy = () => {
     );
   }
 
-  const protocol = plan.protocols[activeProtocol];
+  const protocol = plan.protocols[finalActiveProtocol];
+
 
   return (
     <div className="min-h-screen bg-background">
