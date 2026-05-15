@@ -64,4 +64,9 @@ export const DEMO_SESSION: WorkoutSession = {
   energy_oxidative: 20,
   expected_time_seconds: 240,
   time_cap_seconds: 600,
+  intended_stimulus_min: 180,
+  intended_stimulus_max: 360,
+  stimulus_description: "Glycolytische sprint — alles binnen 6 minuten finishen.",
+  coaching_goals_text: "Behoud techniek op thrusters, ga unbroken op pull-ups in ronde 1.",
+  class_size: 8,
 };
