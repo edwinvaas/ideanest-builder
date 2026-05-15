@@ -7,6 +7,11 @@ import {
   DEMO_BENCHMARK_TIMES,
   DEMO_DISPLAY_NAME,
 } from "@/lib/demoMode";
+import {
+  archetypeForExperience,
+  snapshotFromArchetype,
+  benchmarkTimesFromArchetype,
+} from "@/lib/normativeReference";
 
 interface SnapshotResult {
   snapshot: AthleteSnapshot | null;
@@ -55,7 +60,7 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
         { data: wear },
         { data: fatigue },
       ] = await Promise.all([
-        sb.from("profiles").select("display_name, date_of_birth, weight_kg").eq("id", athleteId).maybeSingle(),
+        sb.from("profiles").select("display_name, date_of_birth, weight_kg, experience").eq("id", athleteId).maybeSingle(),
         sb.from("athlete_lift_records").select("load_kg, movements(slug)").eq("athlete_id", athleteId),
         sb.from("athlete_gymnastics_records").select("max_unbroken_reps, movements(slug)").eq("athlete_id", athleteId),
         sb.from("athlete_benchmark_results").select("time_seconds, benchmark_workouts(slug)").eq("athlete_id", athleteId),
@@ -112,9 +117,11 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
         (benches?.length ?? 0) > 0;
 
       if (!hasRealData) {
-        // New athlete with no records: show demo so the engine UI is meaningful
-        setSnapshot(DEMO_SNAPSHOT);
-        setBenchmarkTimes(DEMO_BENCHMARK_TIMES);
+        // No personal benchmarks — fall back to the normative archetype
+        // matched to the athlete's stated experience level.
+        const archetype = archetypeForExperience(profile?.experience);
+        setSnapshot(snapshotFromArchetype(archetype, age));
+        setBenchmarkTimes(benchmarkTimesFromArchetype(archetype));
         setIsMock(true);
       } else {
         setBenchmarkTimes(Object.fromEntries(benchBy));
