@@ -13,12 +13,17 @@ import { useCurrentProfile } from "@/hooks/useCurrentProfile";
 import { useAthleteSnapshot } from "@/hooks/useAthleteSnapshot";
 import { useTodaySession } from "@/hooks/useTodaySession";
 import { isDemoMode } from "@/lib/demoMode";
+import { useAthlete } from "@/contexts/AthleteContext";
 
 const AthleteDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, loading: profileLoading } = useCurrentProfile();
-  const { snapshot, benchmarkTimes, displayName, isMock } = useAthleteSnapshot(user?.id ?? null);
+  const { profile: localProfile, isOnboarded } = useAthlete();
+  const { snapshot, benchmarkTimes, displayName, isMock } = useAthleteSnapshot(
+    user?.id ?? null,
+    isOnboarded ? localProfile : null,
+  );
   const { session } = useTodaySession();
   const demo = isDemoMode();
 

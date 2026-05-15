@@ -12,6 +12,8 @@ import {
   snapshotFromArchetype,
   benchmarkTimesFromArchetype,
 } from "@/lib/normativeReference";
+import { snapshotFromLocalProfile } from "@/lib/localSnapshot";
+import type { AthleteProfile } from "@/contexts/AthleteContext";
 
 interface SnapshotResult {
   snapshot: AthleteSnapshot | null;
@@ -31,16 +33,38 @@ function clamp01(v: number) {
   return Math.max(0, Math.min(1, v));
 }
 
-export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
+export function useAthleteSnapshot(
+  athleteId: string | null,
+  localProfile?: AthleteProfile | null,
+): SnapshotResult {
   const [snapshot, setSnapshot] = useState<AthleteSnapshot | null>(null);
   const [benchmarkTimes, setBenchmarkTimes] = useState<Record<string, number>>({});
   const [displayName, setDisplayName] = useState("Athlete");
   const [loading, setLoading] = useState(true);
   const [isMock, setIsMock] = useState(false);
 
+  // Build a key from the local profile so we re-derive when the user
+  // updates their onboarding values without a backend round-trip.
+  const localKey = localProfile
+    ? JSON.stringify({
+        n: localProfile.name,
+        a: localProfile.age,
+        b: localProfile.benchmarks,
+        l: localProfile.maxLifts,
+        g: localProfile.gymnastics,
+      })
+    : "";
+
   useEffect(() => {
     if (!athleteId) {
-      if (isDemoMode()) {
+      // No authenticated user — prefer locally-entered onboarding values
+      const local = snapshotFromLocalProfile(localProfile);
+      if (local) {
+        setSnapshot(local.snapshot);
+        setBenchmarkTimes(local.benchmarkTimes);
+        setDisplayName(localProfile?.name || DEMO_DISPLAY_NAME);
+        setIsMock(true);
+      } else if (isDemoMode()) {
         setSnapshot(DEMO_SNAPSHOT);
         setBenchmarkTimes(DEMO_BENCHMARK_TIMES);
         setDisplayName(DEMO_DISPLAY_NAME);
@@ -117,11 +141,17 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
         (benches?.length ?? 0) > 0;
 
       if (!hasRealData) {
-        // No personal benchmarks — fall back to the normative archetype
-        // matched to the athlete's stated experience level.
-        const archetype = archetypeForExperience(profile?.experience, age);
-        setSnapshot(snapshotFromArchetype(archetype, age));
-        setBenchmarkTimes(benchmarkTimesFromArchetype(archetype));
+        // Database is empty — try locally-entered onboarding values first,
+        // then fall back to the normative archetype.
+        const local = snapshotFromLocalProfile(localProfile);
+        if (local) {
+          setSnapshot(local.snapshot);
+          setBenchmarkTimes(local.benchmarkTimes);
+        } else {
+          const archetype = archetypeForExperience(profile?.experience, age);
+          setSnapshot(snapshotFromArchetype(archetype, age));
+          setBenchmarkTimes(benchmarkTimesFromArchetype(archetype));
+        }
         setIsMock(true);
       } else {
         setBenchmarkTimes(Object.fromEntries(benchBy));
@@ -141,7 +171,7 @@ export function useAthleteSnapshot(athleteId: string | null): SnapshotResult {
       }
       setLoading(false);
     })();
-  }, [athleteId]);
+  }, [athleteId, localKey]);
 
   return { snapshot, benchmarkTimes, displayName, loading, isMock };
 }
