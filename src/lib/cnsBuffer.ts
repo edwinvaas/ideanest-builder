@@ -12,7 +12,10 @@ import { movementBalanceCnsAdjust } from "@/lib/anatomy";
  *
  * Mental resilience nudges the cap by ±3%.
  */
-export function cnsMax1RmPct(snapshot: AthleteSnapshot): number {
+export function cnsMax1RmPct(
+  snapshot: AthleteSnapshot,
+  movements: WodMovement[] = [],
+): number {
   const r = snapshot.recoveryToday;
   let cap = 0.85;
   if (r < 0.4) cap = 0.7;
@@ -20,7 +23,13 @@ export function cnsMax1RmPct(snapshot: AthleteSnapshot): number {
   else if (r < 0.75) cap = 0.85;
   else cap = 0.92;
   const resilienceAdj = ((snapshot.mentalResilience ?? 0.5) - 0.5) * 0.06;
-  return Math.max(0.6, Math.min(0.95, cap + resilienceAdj));
+  const balance = movementBalanceCnsAdjust(movements);
+  return Math.max(0.6, Math.min(0.95, cap + resilienceAdj + balance.capDeltaPct));
+}
+
+/** Rep-density factor (1.0 = normaal, <1 = trager doseren bij redundante overlap). */
+export function repDensityFactorFor(movements: WodMovement[] = []): number {
+  return movementBalanceCnsAdjust(movements).repDensityFactor;
 }
 
 /**
