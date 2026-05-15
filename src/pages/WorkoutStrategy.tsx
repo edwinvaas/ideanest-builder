@@ -53,10 +53,36 @@ const PROTOCOL_META: Record<ProtocolId, { icon: typeof Target; tone: string }> =
 
 const WorkoutStrategy = () => {
   const { user } = useAuth();
-  const { snapshot: rawSnapshot, loading, isMock } = useAthleteSnapshot(user?.id ?? null);
-  const { session, loading: sessionLoading } = useTodaySession();
+  const { profile: localProfile, isOnboarded } = useAthlete();
+  const { snapshot: rawSnapshot, loading, isMock, benchmarkTimes } = useAthleteSnapshot(
+    user?.id ?? null,
+    isOnboarded ? localProfile : null,
+  );
+  const { session: dbSession, loading: sessionLoading } = useTodaySession();
   const ctx = useStrategyContext(user?.id ?? null);
   const demo = isDemoMode();
+
+  // ─── Programming source selector ───
+  const [source, setSource] = useState<ProgrammingSourceId>(() => getStoredSource());
+  useEffect(() => setStoredSource(source), [source]);
+  const sourceWod = useMemo(() => (source === "manual" ? null : getDailyWod(source)), [source]);
+
+  // The active session: source-driven WOD overrides today's coached session
+  const session: (WorkoutSession & { benchmark_slug?: string }) | null =
+    sourceWod ?? dbSession;
+  const benchmarkSlug = (session as any)?.benchmark_slug as string | undefined;
+
+  // ─── Truth Engine inputs (athlete's own time for the loaded benchmark) ───
+  const prSeconds = benchmarkSlug ? benchmarkTimes[benchmarkSlug] ?? null : null;
+  const [currentInput, setCurrentInput] = useState("");
+  // Reset input when the loaded benchmark changes
+  useEffect(() => {
+    setCurrentInput(prSeconds ? formatSeconds(prSeconds) : "");
+  }, [benchmarkSlug, prSeconds]);
+  const truthSeconds = useMemo(() => {
+    const parsed = parseTimeToSeconds(currentInput);
+    return parsed ?? prSeconds;
+  }, [currentInput, prSeconds]);
 
   // Override recovery with effective (wearable → wellness → baseline)
   const snapshot = useMemo(() => {
@@ -90,7 +116,7 @@ const WorkoutStrategy = () => {
   const activeProtocol: ProtocolId = protocolId ?? "smart_engine";
 
   // Stage 5 of pipeline runs full Decision Hierarchy
-  const ctxPlan = useMemo(() => {
+  const rawCtxPlan = useMemo(() => {
     if (!snapshot || !ctx.ready) return null;
     const goals: Goal[] = ctx.goals.length
       ? ctx.goals
@@ -107,6 +133,41 @@ const WorkoutStrategy = () => {
       activeProtocol,
     });
   }, [snapshot, ctx.ready, ctx.goals, demand, session, activeProtocol, demo]);
+
+  // ─── Truth Engine: rescale plan so the athlete's own time drives finish/fatigue ───
+  const ctxPlan = useMemo(() => {
+    if (!rawCtxPlan) return null;
+    if (!truthSeconds) return rawCtxPlan;
+    const baseline = rawCtxPlan.plan.protocols.smart_engine.predictedTimeSeconds;
+    if (!baseline) return rawCtxPlan;
+    const ratio = truthSeconds / baseline;
+    if (Math.abs(ratio - 1) < 0.001) return rawCtxPlan;
+    const scaleProtocol = (p: PacingProtocol): PacingProtocol => ({
+      ...p,
+      predictedTimeSeconds: Math.round(p.predictedTimeSeconds * ratio),
+      fatiguePointSeconds: Math.round(p.fatiguePointSeconds * ratio),
+      splits: p.splits.map((s) => ({
+        ...s,
+        startSec: Math.round(s.startSec * ratio),
+        endSec: Math.round(s.endSec * ratio),
+      })),
+    });
+    const protocols = (Object.keys(rawCtxPlan.plan.protocols) as ProtocolId[]).reduce(
+      (acc, id) => {
+        acc[id] = scaleProtocol(rawCtxPlan.plan.protocols[id]);
+        return acc;
+      },
+      {} as Record<ProtocolId, PacingProtocol>,
+    );
+    const newPlan: StrategyPlan = {
+      ...rawCtxPlan.plan,
+      protocols,
+      splits: protocols[rawCtxPlan.plan.recommendedProtocol].splits,
+      predictedTimeSeconds: protocols.smart_engine.predictedTimeSeconds,
+      fatiguePointSeconds: protocols.smart_engine.fatiguePointSeconds,
+    };
+    return { ...rawCtxPlan, plan: newPlan };
+  }, [rawCtxPlan, truthSeconds]);
 
   const plan = ctxPlan?.plan ?? null;
   const recommended = plan?.recommendedProtocol ?? "smart_engine";
