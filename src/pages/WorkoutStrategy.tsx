@@ -5,6 +5,7 @@ import FatigueTimelineInteractive from "@/components/athlete/FatigueTimelineInte
 import PostWodFeedback from "@/components/athlete/PostWodFeedback";
 import GoalAlignmentBadge from "@/components/athlete/GoalAlignmentBadge";
 import ScalingProposalCard from "@/components/athlete/ScalingProposal";
+import BottleneckAlert from "@/components/athlete/BottleneckAlert";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -257,6 +258,11 @@ const WorkoutStrategy = () => {
         </div>
 
         {ctxPlan.proposal && <ScalingProposalCard proposal={ctxPlan.proposal} />}
+
+        <BottleneckAlert
+          anatomy={ctxPlan.anatomy}
+          transitionBufferSec={ctxPlan.anatomy.transitionBufferSec}
+        />
 
         {ctxPlan.intensityCeiling !== "z3" && (
           <div className="rounded-lg border border-warning/40 bg-warning/5 p-3 flex items-start gap-2">

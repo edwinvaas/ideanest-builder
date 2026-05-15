@@ -22,7 +22,8 @@ import {
   type WodDemand,
   type WodMovement,
 } from "@/lib/fatigueEngine";
-import { cnsMax1RmPct } from "@/lib/cnsBuffer";
+import { cnsMax1RmPct, repDensityFactorFor } from "@/lib/cnsBuffer";
+import { analyzeAnatomy, type AnatomyReport } from "@/lib/anatomy";
 
 export type Goal = "competition" | "longevity" | "health" | "strength" | "weightlifting";
 
@@ -48,6 +49,8 @@ export interface ContextualPlan {
   cnsMax1RmPct: number;
   goalAlignment: number; // 0–100
   goals: Goal[];
+  anatomy: AnatomyReport;
+  repDensityFactor: number;
   notes: string[];
 }
 
@@ -280,20 +283,36 @@ export function runDecisionPipeline(input: RunPipelineInput): ContextualPlan {
   const base = buildStrategy(input.snapshot, input.demand);
   const movements = input.demand.movements ?? [];
 
+  // Anatomical chain analysis (vector-based muscle taxation)
+  const anatomy = analyzeAnatomy(movements, input.goals);
+
   // 1. Biometric gate
   const gated = applyBiometricGate(base, input.snapshot.recoveryToday);
 
-  // 4. Interference (grip-specific, on top of existing posterior/shoulder)
+  // 4a. Grip interference (on top of existing posterior/shoulder)
   const grip = analyzeGripInterference(movements);
 
   // 3. Goal modifier
   const goaled = applyGoalModifier(gated.plan, input.goals);
 
+  // 4b. Anatomy fatigue-accumulation boost — pull fatigue point earlier per protocol
+  if (anatomy.fatigueAccumulationBoost > 1) {
+    const shrink = 1 / anatomy.fatigueAccumulationBoost;
+    goaled.plan.protocols = mapProtocols(goaled.plan.protocols, (p) => ({
+      ...p,
+      fatiguePointSeconds: Math.round(p.fatiguePointSeconds * shrink),
+    }));
+    goaled.plan.fatiguePointSeconds = Math.round(
+      goaled.plan.fatiguePointSeconds * shrink,
+    );
+  }
+
   // 2. Stimulus gate (uses post-goal predicted time)
   const proposal = applyStimulusGate(goaled.plan, input.stimulus, input.activeProtocol);
 
-  // 5. CNS volume cap
-  const cnsCap = cnsMax1RmPct(input.snapshot);
+  // 5. CNS volume cap (anatomy-aware: complementary/redundant pairs adjust)
+  const cnsCap = cnsMax1RmPct(input.snapshot, movements);
+  const repDensityFactor = repDensityFactorFor(movements);
 
   const goalAlignment = scoreGoalAlignment(
     goaled.plan,
@@ -302,21 +321,31 @@ export function runDecisionPipeline(input: RunPipelineInput): ContextualPlan {
     gated.ceiling,
   );
 
+  // Combined micro-rest: max of grip-only vs transition buffer
+  const microRestSec = Math.max(grip.microRestSec, anatomy.transitionBufferSec);
+
   const notes = [
     ...(gated.note ? [gated.note] : []),
     ...goaled.notes,
     ...grip.notes,
+    ...anatomy.alerts.map((a) => a.cue),
+    ...(anatomy.flowTip ? [anatomy.flowTip] : []),
     `CNS-buffer — vandaag max ${Math.round(cnsCap * 100)}% 1RM aanraken.`,
+    ...(repDensityFactor < 1
+      ? [`Rep-density gecapt op ${Math.round(repDensityFactor * 100)}% door redundante bewegingsoverlap.`]
+      : []),
   ];
 
   return {
     plan: goaled.plan,
     intensityCeiling: gated.ceiling,
     proposal,
-    microRestSec: grip.microRestSec,
+    microRestSec,
     cnsMax1RmPct: cnsCap,
     goalAlignment,
     goals: input.goals,
+    anatomy,
+    repDensityFactor,
     notes,
   };
 }
