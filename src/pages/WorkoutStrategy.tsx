@@ -176,6 +176,8 @@ const WorkoutStrategy = () => {
   // Persist generated strategy + chosen protocol so coach can read it
   useEffect(() => {
     if (!plan || !session || !user || demo) return;
+    // Source-driven (programming) WODs are not real DB sessions — skip persist
+    if (sourceWod) return;
     (supabase as any)
       .from("athlete_strategies")
       .upsert(
