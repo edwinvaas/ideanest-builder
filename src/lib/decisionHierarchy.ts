@@ -49,6 +49,8 @@ export interface ContextualPlan {
   cnsMax1RmPct: number;
   goalAlignment: number; // 0–100
   goals: Goal[];
+  anatomy: AnatomyReport;
+  repDensityFactor: number;
   notes: string[];
 }
 
