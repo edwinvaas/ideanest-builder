@@ -4,6 +4,7 @@ import { useAthlete, AthleteProfile } from "@/contexts/AthleteContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { persistOnboarding } from "@/lib/onboardingSync";
+import { isDemoMode } from "@/lib/demoMode";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,11 +80,16 @@ const AthleteOnboarding = () => {
 
   const handleFinish = async () => {
     if (!user) {
+      // Demo mode (or session not yet hydrated): hydrate local context only
+      setProfile(form);
+      setIsOnboarded(true);
       toast({
-        title: "Niet ingelogd",
-        description: "Log opnieuw in om je profiel op te slaan.",
-        variant: "destructive",
+        title: isDemoMode() ? "Demo profiel geladen" : "Profiel lokaal opgeslagen",
+        description: isDemoMode()
+          ? "Je verkent BoxBrain in demo-modus — gegevens worden niet bewaard."
+          : "Log in om je profiel permanent op te slaan.",
       });
+      navigate("/athlete");
       return;
     }
     setSaving(true);
