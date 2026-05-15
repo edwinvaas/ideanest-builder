@@ -3,22 +3,28 @@ import Navbar from "@/components/Navbar";
 import RoleBadge from "@/components/RoleBadge";
 import FatigueTimelineInteractive from "@/components/athlete/FatigueTimelineInteractive";
 import PostWodFeedback from "@/components/athlete/PostWodFeedback";
+import GoalAlignmentBadge from "@/components/athlete/GoalAlignmentBadge";
+import ScalingProposalCard from "@/components/athlete/ScalingProposal";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthleteSnapshot } from "@/hooks/useAthleteSnapshot";
 import { useTodaySession } from "@/hooks/useTodaySession";
-import { buildStrategy, type ProtocolId } from "@/lib/fatigueEngine";
+import { useStrategyContext } from "@/hooks/useStrategyContext";
+import { type ProtocolId } from "@/lib/fatigueEngine";
+import { runDecisionPipeline, type Goal } from "@/lib/decisionHierarchy";
 import { formatSeconds } from "@/lib/onboardingSync";
 import { supabase } from "@/integrations/supabase/client";
 import { isDemoMode, DEMO_MOVEMENTS } from "@/lib/demoMode";
 import {
   Activity,
   AlertTriangle,
+  Heart,
   Loader2,
   Plane,
   Shield,
   Target,
+  Timer,
   Zap,
 } from "lucide-react";
 
@@ -38,9 +44,18 @@ const PROTOCOL_META: Record<ProtocolId, { icon: typeof Target; tone: string }> =
 
 const WorkoutStrategy = () => {
   const { user } = useAuth();
-  const { snapshot, loading, isMock } = useAthleteSnapshot(user?.id ?? null);
+  const { snapshot: rawSnapshot, loading, isMock } = useAthleteSnapshot(user?.id ?? null);
   const { session, loading: sessionLoading } = useTodaySession();
+  const ctx = useStrategyContext(user?.id ?? null);
   const demo = isDemoMode();
+
+  // Override recovery with effective (wearable → wellness → baseline)
+  const snapshot = useMemo(() => {
+    if (!rawSnapshot) return null;
+    return ctx.ready
+      ? { ...rawSnapshot, recoveryToday: ctx.effectiveRecovery }
+      : rawSnapshot;
+  }, [rawSnapshot, ctx.ready, ctx.effectiveRecovery]);
 
   const demand = useMemo(() => {
     const base = session
@@ -58,19 +73,35 @@ const WorkoutStrategy = () => {
       : FALLBACK_DEMAND;
     return {
       ...base,
-      // Demo mode injects parsed movements so the interference matrix has data
       movements: demo ? DEMO_MOVEMENTS : undefined,
     };
   }, [session, demo]);
 
-  const plan = useMemo(
-    () => (snapshot ? buildStrategy(snapshot, demand) : null),
-    [snapshot, demand],
-  );
-
   const [protocolId, setProtocolId] = useState<ProtocolId | null>(null);
-  const activeProtocol: ProtocolId =
-    protocolId ?? plan?.recommendedProtocol ?? "smart_engine";
+  const activeProtocol: ProtocolId = protocolId ?? "smart_engine";
+
+  // Stage 5 of pipeline runs full Decision Hierarchy
+  const ctxPlan = useMemo(() => {
+    if (!snapshot || !ctx.ready) return null;
+    const goals: Goal[] = ctx.goals.length
+      ? ctx.goals
+      : (demo ? (["competition"] as Goal[]) : []);
+    return runDecisionPipeline({
+      snapshot,
+      demand,
+      stimulus: {
+        intended_stimulus_min: session?.intended_stimulus_min ?? null,
+        intended_stimulus_max: session?.intended_stimulus_max ?? null,
+        stimulus_description: session?.stimulus_description ?? null,
+      },
+      goals,
+      activeProtocol,
+    });
+  }, [snapshot, ctx.ready, ctx.goals, demand, session, activeProtocol, demo]);
+
+  const plan = ctxPlan?.plan ?? null;
+  const recommended = plan?.recommendedProtocol ?? "smart_engine";
+  const finalActiveProtocol: ProtocolId = protocolId ?? recommended;
 
   // Persist generated strategy + chosen protocol so coach can read it
   useEffect(() => {
@@ -83,17 +114,17 @@ const WorkoutStrategy = () => {
           athlete_id: user.id,
           anaerobic_threshold_bpm: plan.anaerobicThresholdBpm,
           redline_bpm: plan.redlineBpm,
-          fatigue_point_seconds: plan.protocols[activeProtocol].fatiguePointSeconds,
-          splits: plan.protocols[activeProtocol].splits as any,
+          fatigue_point_seconds: plan.protocols[finalActiveProtocol].fatiguePointSeconds,
+          splits: plan.protocols[finalActiveProtocol].splits as any,
           advice: plan.advice,
-          chosen_protocol: activeProtocol,
+          chosen_protocol: finalActiveProtocol,
         },
         { onConflict: "session_id,athlete_id" },
       )
       .then(() => undefined);
-  }, [plan, session, user, activeProtocol, demo]);
+  }, [plan, session, user, finalActiveProtocol, demo]);
 
-  if (loading || sessionLoading) {
+  if (loading || sessionLoading || !ctx.ready) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -104,7 +135,7 @@ const WorkoutStrategy = () => {
     );
   }
 
-  if (!snapshot || !plan) {
+  if (!snapshot || !plan || !ctxPlan) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -117,7 +148,8 @@ const WorkoutStrategy = () => {
     );
   }
 
-  const protocol = plan.protocols[activeProtocol];
+  const protocol = plan.protocols[finalActiveProtocol];
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -197,6 +229,46 @@ const WorkoutStrategy = () => {
           </div>
         )}
 
+        {/* Goal alignment + scaling proposal */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <GoalAlignmentBadge score={ctxPlan.goalAlignment} goals={ctx.goals} />
+          <div className="rounded-xl border border-border bg-secondary/30 p-4 flex items-center gap-3">
+            <Heart className="w-5 h-5 text-primary shrink-0" />
+            <div className="text-xs">
+              <p className="font-semibold uppercase tracking-wide text-muted-foreground">
+                Recovery bron
+              </p>
+              <p className="text-sm">
+                {ctx.recoverySource === "wearable"
+                  ? "Wearable (HRV/RHR vandaag)"
+                  : ctx.recoverySource === "wellness"
+                    ? `Subjectieve wellness (${ctx.subjectiveWellness}/10)`
+                    : "Leeftijd/geslacht baseline"}
+                {" · "}
+                <span className="font-mono text-foreground">
+                  {Math.round(ctx.effectiveRecovery * 100)}%
+                </span>
+              </p>
+            </div>
+            <Badge variant="outline" className="ml-auto text-[10px]">
+              CNS cap {Math.round(ctxPlan.cnsMax1RmPct * 100)}% 1RM
+            </Badge>
+          </div>
+        </div>
+
+        {ctxPlan.proposal && <ScalingProposalCard proposal={ctxPlan.proposal} />}
+
+        {ctxPlan.intensityCeiling !== "z3" && (
+          <div className="rounded-lg border border-warning/40 bg-warning/5 p-3 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
+            <p className="text-xs">
+              Biometrische limiet actief — intensiteit gecapt op{" "}
+              <strong>{ctxPlan.intensityCeiling.toUpperCase()}</strong>. Engine
+              negeert protocol-keuzes die hier overheen vragen.
+            </p>
+          </div>
+        )}
+
         {/* Pilot status */}
         <div className="rounded-xl bg-gradient-card border border-border p-5 shadow-card">
           <div className="flex items-center justify-between mb-4">
@@ -241,6 +313,12 @@ const WorkoutStrategy = () => {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
+                {ctxPlan.microRestSec > 0 && (
+                  <Badge variant="outline" className="border-warning/40 text-warning">
+                    <Timer className="w-3 h-3 mr-1" />
+                    Grip micro-rest {ctxPlan.microRestSec}s
+                  </Badge>
+                )}
                 {plan.interference.posteriorTax >= 0.5 && (
                   <Badge variant="outline" className="border-warning/40 text-warning">
                     Posterior chain ↑{Math.abs(Math.round(plan.interference.fatigueShiftPct * 100))}%
@@ -284,7 +362,7 @@ const WorkoutStrategy = () => {
               const p = plan.protocols[pid];
               const meta = PROTOCOL_META[pid];
               const Icon = meta.icon;
-              const active = pid === activeProtocol;
+              const active = pid === finalActiveProtocol;
               const recommended = pid === plan.recommendedProtocol;
               return (
                 <button
@@ -317,7 +395,7 @@ const WorkoutStrategy = () => {
         </div>
 
         {/* Interactive timeline */}
-        <FatigueTimelineInteractive plan={plan} protocolId={activeProtocol} />
+        <FatigueTimelineInteractive plan={plan} protocolId={finalActiveProtocol} />
 
         {/* Pacing narrative */}
         <div className="rounded-xl bg-gradient-card border border-border p-6 shadow-card">

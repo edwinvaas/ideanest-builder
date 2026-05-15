@@ -16,6 +16,11 @@ export interface WorkoutSession {
   energy_oxidative: number;
   expected_time_seconds: number | null;
   time_cap_seconds: number | null;
+  intended_stimulus_min: number | null;
+  intended_stimulus_max: number | null;
+  stimulus_description: string | null;
+  coaching_goals_text: string | null;
+  class_size: number | null;
 }
 
 /** Returns the most recently scheduled session for the user's box (today or upcoming). */

@@ -542,6 +542,7 @@ export type Database = {
           height_cm: number | null
           id: string
           onboarded: boolean
+          subjective_wellness: number | null
           updated_at: string
           weight_kg: number | null
         }
@@ -557,6 +558,7 @@ export type Database = {
           height_cm?: number | null
           id: string
           onboarded?: boolean
+          subjective_wellness?: number | null
           updated_at?: string
           weight_kg?: number | null
         }
@@ -572,6 +574,7 @@ export type Database = {
           height_cm?: number | null
           id?: string
           onboarded?: boolean
+          subjective_wellness?: number | null
           updated_at?: string
           weight_kg?: number | null
         }
@@ -668,6 +671,8 @@ export type Database = {
         Row: {
           benchmark_id: string | null
           box_id: string | null
+          class_size: number | null
+          coaching_goals_text: string | null
           created_at: string
           created_by: string
           description: string
@@ -677,8 +682,11 @@ export type Database = {
           energy_phosphagen: number
           expected_time_seconds: number | null
           id: string
+          intended_stimulus_max: number | null
+          intended_stimulus_min: number | null
           primary_limiter: string | null
           scheduled_for: string
+          stimulus_description: string | null
           time_cap_seconds: number | null
           title: string
           updated_at: string
@@ -686,6 +694,8 @@ export type Database = {
         Insert: {
           benchmark_id?: string | null
           box_id?: string | null
+          class_size?: number | null
+          coaching_goals_text?: string | null
           created_at?: string
           created_by: string
           description: string
@@ -695,8 +705,11 @@ export type Database = {
           energy_phosphagen?: number
           expected_time_seconds?: number | null
           id?: string
+          intended_stimulus_max?: number | null
+          intended_stimulus_min?: number | null
           primary_limiter?: string | null
           scheduled_for?: string
+          stimulus_description?: string | null
           time_cap_seconds?: number | null
           title: string
           updated_at?: string
@@ -704,6 +717,8 @@ export type Database = {
         Update: {
           benchmark_id?: string | null
           box_id?: string | null
+          class_size?: number | null
+          coaching_goals_text?: string | null
           created_at?: string
           created_by?: string
           description?: string
@@ -713,8 +728,11 @@ export type Database = {
           energy_phosphagen?: number
           expected_time_seconds?: number | null
           id?: string
+          intended_stimulus_max?: number | null
+          intended_stimulus_min?: number | null
           primary_limiter?: string | null
           scheduled_for?: string
+          stimulus_description?: string | null
           time_cap_seconds?: number | null
           title?: string
           updated_at?: string

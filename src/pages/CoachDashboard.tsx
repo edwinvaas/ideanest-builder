@@ -9,21 +9,24 @@ import { Button } from "@/components/ui/button";
 import { ClipboardList, ArrowRight, Zap, Microscope, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCoachRoster } from "@/hooks/useCoachRoster";
+import { useTodaySession } from "@/hooks/useTodaySession";
 
 const CoachDashboard = () => {
   const navigate = useNavigate();
   const { rows, loading, anomalies, openComparison } = useCoachRoster();
-  // Auto-pick: >6 atleten = quick-cues, kleiner = deep-dive
-  const autoMode: "quick" | "deep" = rows.length > 6 ? "quick" : "deep";
+  const { session } = useTodaySession();
+  // Class size: prefer session.class_size (coach-specified), else roster size
+  const classSize = session?.class_size ?? rows.length;
+  const autoMode: "quick" | "deep" = classSize > 6 ? "quick" : "deep";
   const [mode, setMode] = useState<"quick" | "deep" | null>(null);
   const activeMode = mode ?? autoMode;
 
   const modeReason = useMemo(
     () =>
       activeMode === "quick"
-        ? `Class size ${rows.length} — Quick-Cues actief (snelle batch-coaching).`
-        : `Class size ${rows.length} — Deep-Dive actief (1-op-1 analyse).`,
-    [activeMode, rows.length],
+        ? `Class size ${classSize} — Quick-Cues actief (Group / Safety view).`
+        : `Class size ${classSize} — Deep-Dive actief (Tactical analytics).`,
+    [activeMode, classSize],
   );
 
   return (
