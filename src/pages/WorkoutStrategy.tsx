@@ -229,6 +229,46 @@ const WorkoutStrategy = () => {
           </div>
         )}
 
+        {/* Goal alignment + scaling proposal */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <GoalAlignmentBadge score={ctxPlan.goalAlignment} goals={ctx.goals} />
+          <div className="rounded-xl border border-border bg-secondary/30 p-4 flex items-center gap-3">
+            <Heart className="w-5 h-5 text-primary shrink-0" />
+            <div className="text-xs">
+              <p className="font-semibold uppercase tracking-wide text-muted-foreground">
+                Recovery bron
+              </p>
+              <p className="text-sm">
+                {ctx.recoverySource === "wearable"
+                  ? "Wearable (HRV/RHR vandaag)"
+                  : ctx.recoverySource === "wellness"
+                    ? `Subjectieve wellness (${ctx.subjectiveWellness}/10)`
+                    : "Leeftijd/geslacht baseline"}
+                {" · "}
+                <span className="font-mono text-foreground">
+                  {Math.round(ctx.effectiveRecovery * 100)}%
+                </span>
+              </p>
+            </div>
+            <Badge variant="outline" className="ml-auto text-[10px]">
+              CNS cap {Math.round(ctxPlan.cnsMax1RmPct * 100)}% 1RM
+            </Badge>
+          </div>
+        </div>
+
+        {ctxPlan.proposal && <ScalingProposalCard proposal={ctxPlan.proposal} />}
+
+        {ctxPlan.intensityCeiling !== "z3" && (
+          <div className="rounded-lg border border-warning/40 bg-warning/5 p-3 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
+            <p className="text-xs">
+              Biometrische limiet actief — intensiteit gecapt op{" "}
+              <strong>{ctxPlan.intensityCeiling.toUpperCase()}</strong>. Engine
+              negeert protocol-keuzes die hier overheen vragen.
+            </p>
+          </div>
+        )}
+
         {/* Pilot status */}
         <div className="rounded-xl bg-gradient-card border border-border p-5 shadow-card">
           <div className="flex items-center justify-between mb-4">
