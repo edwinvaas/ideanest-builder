@@ -1,94 +1,29 @@
-# Contextual Intelligence Upgrade — Incremental & Non-Destructive
+# Fix: ingevulde benchmarks tonen op het dashboard
 
-Doel: BoxBrain uitbreiden met een strikte beslis-hiërarchie, dieper interferentie-model, doel-alignment en adaptief coach-UI. Auth, routing en bestaande tabellen blijven intact.
+## Probleem
 
----
+De Fran-tijd (en andere waarden) op `/athlete` komt niet overeen met wat je in de onboarding hebt ingevuld.
 
-## 1. Database (additieve migratie)
+Oorzaak: als je de onboarding afrondt zonder ingelogd te zijn (of in demo-modus), worden je waarden alleen lokaal in de React-context bewaard, niet in de database. Het dashboard leest echter alleen uit de database. Vindt het daar niets, dan valt het terug op een **normatief archetype** (gemiddelde Beginner/Intermediate-tijden) — vandaar de "vreemde" Fran-tijd die je nu ziet.
 
-`workout_sessions` — nieuwe kolommen:
-- `intended_stimulus_min int`
-- `intended_stimulus_max int`
-- `stimulus_description text`
-- `coaching_goals_text text`
-- `class_size int` (voor adaptive coach view)
+## Oplossing
 
-`profiles` — nieuwe kolom:
-- `subjective_wellness int` (1–10, fallback wanneer geen wearable)
+Twee niveaus:
 
-`fatigue_profiles` — `correction_factor` bestaat al ✓ (hergebruiken voor ML kalibratie).
+1. **Lokale fallback eerst** — wanneer de database leeg is, gebruik je eigen onboarding-invoer uit de `AthleteContext` in plaats van het archetype. Zo zie je exact terug wat je hebt getypt.
+2. **Archetype als laatste vangnet** — alleen wanneer er noch in de database, noch in de lokale context iets staat (bv. een verse demo-sessie zonder onboarding), val je terug op het Beginner/Intermediate-archetype.
 
-Geen tabel-renames, geen dropping.
+## Wat er verandert
 
-## 2. Strategy Engine — Decision Hierarchy
+- `useAthleteSnapshot` krijgt een optionele "lokale onboarding-snapshot" mee (uit `AthleteContext`).
+- Volgorde van waarheid:
+  1. Database-records van een ingelogde gebruiker
+  2. Lokale onboarding-invoer (recent ingevuld, nog niet/persistent)
+  3. Normatief archetype (laatste vangnet)
+- `AthleteDashboard` geeft de lokale waarden door en toont een duidelijk label ("lokale waarden — log in om te bewaren") als je nog geen account hebt.
+- De Fran-kaart toont voortaan de exacte tijd zoals jij hem hebt ingevoerd (mm:ss).
 
-Nieuw bestand `src/lib/decisionHierarchy.ts` dat boven op bestaande `fatigueEngine.ts` draait:
+## Niet veranderd
 
-```text
-Stap 1  Biometric gate     → recovery <50% ⇒ cap intensiteit op Z2/Z3
-Stap 2  Stimulus gate      → check predicted finish vs intended_stimulus_min/max
-                              ⇒ genereer ScalingProposal (load%, reps, of substitutie)
-Stap 3  Goal modifier      → competition | longevity | strength
-                              past pacing/rust/technical-ceiling toe
-Stap 4  Interference pass  → grip/posterior/shoulder/CNS buffer
-                              voegt micro-rusten (7-10s) toe
-Stap 5  CNS volume cap     → max %1RM op basis van HRV-bucket
-```
-
-Functie signaturen:
-- `applyBiometricGate(plan, recovery): GatedPlan`
-- `applyStimulusGate(plan, session, snapshot): { plan, proposal? }`
-- `applyGoalModifier(plan, goals[]): plan`
-- `applyInterferenceMicroRests(plan, movements): plan`
-- `enforceCnsVolumeCap(plan, snapshot): plan`
-- `runDecisionPipeline(...)` — orchestrator, async, Promise.all voor data-fetch.
-
-`buildStrategy()` blijft de low-level berekening; pipeline is een nieuwe laag.
-
-## 3. Interference & CNS
-
-Uitbreiden `MOVEMENT_TAXONOMY` in `fatigueEngine.ts` met `gripLoad` (0–1). Nieuwe helper:
-- detecteert grip-overlap (SDHP + K2E etc.) ⇒ injecteert `microRestSec: 7–10` per cluster.
-- `cnsBuffer(snapshot, recovery)` retourneert max %1RM (bijv. 75% bij HRV-laag, 90% bij HRV-hoog).
-
-## 4. UI
-
-Niet-destructief (bestaande componenten blijven werken):
-
-- **Goal Alignment Badge** (`src/components/athlete/GoalAlignmentBadge.tsx`) — 0–100% score hoe goed huidig protocol/plan bij goals past. Toegevoegd bovenin Pilot Status op `WorkoutStrategy`.
-- **Scaling Proposal Card** (`src/components/athlete/ScalingProposal.tsx`) — toont alleen als stimulus-gate een proposal terug geeft.
-- **Adaptive Coach Dashboard**: bestaande `CoachDashboard.tsx` krijgt toggle op basis van `class_size`:
-  - `>6` → `CoachQuickCues` prominent (Group / Safety view)
-  - `≤6` → `CoachDeepDive` + `CoachIntelligenceBar` (Tactical view)
-  Toggle is automatisch + handmatig override (knop).
-- **Fatigue Timeline**: bestaande `FatigueTimelineInteractive` blijft, krijgt overlay-laag voor micro-rest markers.
-
-## 5. Sync & Fallback
-
-- `useStrategyContext` hook bundelt `Promise.all([snapshot, session, wearable, movements])`.
-- Wanneer geen wearable van vandaag → val terug op `profiles.subjective_wellness` (1–10 → 0–1) of leeftijd/geslacht baseline (`recoveryFromAgeGender`).
-- Engine pas rekenen wanneer `ready === true`.
-
-## 6. Out of scope
-
-- Echte wearable-ingest (mock blijft)
-- Push notificaties
-- LLM/AI text generatie (deterministisch)
-- Auth/route wijzigingen
-
-## Bestanden
-
-Nieuw:
-- `supabase/migrations/<ts>_contextual_intelligence.sql`
-- `src/lib/decisionHierarchy.ts`
-- `src/lib/cnsBuffer.ts`
-- `src/components/athlete/GoalAlignmentBadge.tsx`
-- `src/components/athlete/ScalingProposal.tsx`
-- `src/hooks/useStrategyContext.ts`
-
-Aangepast:
-- `src/lib/fatigueEngine.ts` (gripLoad veld + micro-rest hook)
-- `src/pages/WorkoutStrategy.tsx` (pipeline + nieuwe cards)
-- `src/pages/CoachDashboard.tsx` (adaptive view switch)
-- `src/hooks/useTodaySession.ts` (nieuwe velden meenemen)
-- `src/integrations/supabase/types.ts` (auto na migratie)
+- Auth, routing, RLS, database-schema's en de bestaande persist-flow voor ingelogde gebruikers blijven ongewijzigd.
+- Het archetype-bestand (`normativeData.json`) wordt niet aangepast.
