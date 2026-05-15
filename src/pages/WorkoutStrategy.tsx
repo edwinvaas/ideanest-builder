@@ -3,22 +3,28 @@ import Navbar from "@/components/Navbar";
 import RoleBadge from "@/components/RoleBadge";
 import FatigueTimelineInteractive from "@/components/athlete/FatigueTimelineInteractive";
 import PostWodFeedback from "@/components/athlete/PostWodFeedback";
+import GoalAlignmentBadge from "@/components/athlete/GoalAlignmentBadge";
+import ScalingProposalCard from "@/components/athlete/ScalingProposal";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthleteSnapshot } from "@/hooks/useAthleteSnapshot";
 import { useTodaySession } from "@/hooks/useTodaySession";
-import { buildStrategy, type ProtocolId } from "@/lib/fatigueEngine";
+import { useStrategyContext } from "@/hooks/useStrategyContext";
+import { type ProtocolId } from "@/lib/fatigueEngine";
+import { runDecisionPipeline, type Goal } from "@/lib/decisionHierarchy";
 import { formatSeconds } from "@/lib/onboardingSync";
 import { supabase } from "@/integrations/supabase/client";
 import { isDemoMode, DEMO_MOVEMENTS } from "@/lib/demoMode";
 import {
   Activity,
   AlertTriangle,
+  Heart,
   Loader2,
   Plane,
   Shield,
   Target,
+  Timer,
   Zap,
 } from "lucide-react";
 
