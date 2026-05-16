@@ -378,8 +378,8 @@ function buildProtocol(
     ];
     return {
       id,
-      name: "Game Plan",
-      tagline: "Maximale score — Z3 toegestaan in laatste 2 minuten.",
+      name: "Game Plan (Full Gas)",
+      tagline: "Hoge intensiteit. Het tempo ligt hoog, je vermoeidheidspunt ligt vroeg. Alleen kiezen als je 100% hersteld bent.",
       splits,
       narrative: buildClusterNarrative("game_plan", predicted),
       loadScalingPct,
