@@ -27,7 +27,7 @@ const BottleneckAlert = ({ anatomy, transitionBufferSec }: Props) => {
           </div>
           <div className="flex-1">
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              Bottleneck vandaag
+              Zwakste schakel vandaag
             </p>
             <p className="font-display font-bold text-lg leading-tight">
               {anatomy.bottleneck.label}
