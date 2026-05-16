@@ -333,7 +333,7 @@ const WorkoutStrategy = () => {
               </p>
             </div>
             <Badge variant="outline" className="ml-auto text-[10px]">
-              CNS cap {Math.round(ctxPlan.cnsMax1RmPct * 100)}% 1RM
+              Fysieke grens {Math.round(ctxPlan.cnsMax1RmPct * 100)}% 1RM
             </Badge>
           </div>
         </div>
