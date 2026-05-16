@@ -419,7 +419,7 @@ const WorkoutStrategy = () => {
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-4 h-4 text-warning" />
                 <p className="text-xs font-semibold uppercase tracking-wide">
-                  Movement interference
+                  Spiergroep overbelasting
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
