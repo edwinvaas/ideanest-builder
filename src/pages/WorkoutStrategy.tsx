@@ -340,6 +340,29 @@ const WorkoutStrategy = () => {
 
         {ctxPlan.proposal && <ScalingProposalCard proposal={ctxPlan.proposal} />}
 
+        {/* Coach Tip — Spiergroep overbelasting + extra adempauze */}
+        {(ctxPlan.anatomy.bottleneck || ctxPlan.anatomy.transitionBufferSec > 0 || ctxPlan.microRestSec > 0) && (
+          <div className="rounded-xl border-2 border-warning/50 bg-warning/10 p-4 flex items-start gap-3 shadow-card">
+            <AlertTriangle className="w-5 h-5 text-warning mt-0.5 shrink-0" />
+            <div className="text-sm leading-relaxed">
+              <p className="font-display font-bold text-warning mb-1">
+                Coach Tip voor vandaag
+              </p>
+              <p>
+                Deze workout belast je{" "}
+                <strong>
+                  {ctxPlan.anatomy.bottleneck?.label.toLowerCase() ?? "onderrug en grip"}
+                </strong>{" "}
+                extreem zwaar. De Smart Engine heeft daarom automatisch{" "}
+                <strong>
+                  {Math.max(ctxPlan.anatomy.transitionBufferSec, ctxPlan.microRestSec, 5)} seconden
+                </strong>{" "}
+                extra adempauze tussen je sets ingerekend om te zorgen dat je vorm goed blijft.
+              </p>
+            </div>
+          </div>
+        )}
+
         <BottleneckAlert
           anatomy={ctxPlan.anatomy}
           transitionBufferSec={ctxPlan.anatomy.transitionBufferSec}
@@ -349,7 +372,7 @@ const WorkoutStrategy = () => {
           <div className="rounded-lg border border-warning/40 bg-warning/5 p-3 flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
             <p className="text-xs">
-              Biometrische limiet actief — intensiteit gecapt op{" "}
+              Fysieke grens (op basis van je herstel) actief — intensiteit gecapt op{" "}
               <strong>{ctxPlan.intensityCeiling.toUpperCase()}</strong>. Engine
               negeert protocol-keuzes die hier overheen vragen.
             </p>
