@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import PerformanceRadar from "@/components/athlete/PerformanceRadar";
 import MetricCards from "@/components/athlete/MetricCards";
+import AgePeerStatus from "@/components/athlete/AgePeerStatus";
 import RecoveryWidget from "@/components/athlete/RecoveryWidget";
 import RoleBadge from "@/components/RoleBadge";
 import { DemoBanner } from "@/components/DemoBanner";
