@@ -84,6 +84,8 @@ const AthleteDashboard = () => {
             </div>
           </div>
 
+          <AgePeerStatus snapshot={snapshot} ageFallback={localProfile?.age} />
+
           <MetricCards snapshot={snapshot} fran={benchmarkTimes["fran"]} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
