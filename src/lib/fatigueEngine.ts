@@ -456,8 +456,8 @@ function buildProtocol(
   ];
   return {
     id,
-    name: "Foundation",
-    tagline: "Z1 only — ademhalingscontrole en techniek.",
+    name: "Foundation (Herstel/Z2)",
+    tagline: "Rustig tempo. Focus op constante ademhaling en herstel. Ideaal als je een zware week hebt gehad of minder fit bent.",
     splits,
     narrative: buildClusterNarrative("foundation", predicted),
     loadScalingPct,
