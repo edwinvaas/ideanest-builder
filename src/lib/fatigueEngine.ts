@@ -378,8 +378,8 @@ function buildProtocol(
     ];
     return {
       id,
-      name: "Game Plan",
-      tagline: "Maximale score — Z3 toegestaan in laatste 2 minuten.",
+      name: "Game Plan (Full Gas)",
+      tagline: "Hoge intensiteit. Het tempo ligt hoog, je vermoeidheidspunt ligt vroeg. Alleen kiezen als je 100% hersteld bent.",
       splits,
       narrative: buildClusterNarrative("game_plan", predicted),
       loadScalingPct,
@@ -417,8 +417,8 @@ function buildProtocol(
     ];
     return {
       id,
-      name: "Smart Engine",
-      tagline: "≥90% in Zone 2 — forced rest om verzuring uit te stellen.",
+    name: "Smart Engine (Optimaal)",
+      tagline: "Jouw perfecte tempo. Berekend op basis van je leeftijd en PR's. Constante output, minimale kans op de man met de hamer.",
       splits,
       narrative: buildClusterNarrative("smart_engine", predicted),
       loadScalingPct,
@@ -456,8 +456,8 @@ function buildProtocol(
   ];
   return {
     id,
-    name: "Foundation",
-    tagline: "Z1 only — ademhalingscontrole en techniek.",
+    name: "Foundation (Herstel/Z2)",
+    tagline: "Rustig tempo. Focus op constante ademhaling en herstel. Ideaal als je een zware week hebt gehad of minder fit bent.",
     splits,
     narrative: buildClusterNarrative("foundation", predicted),
     loadScalingPct,
