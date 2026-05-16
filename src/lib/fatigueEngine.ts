@@ -417,8 +417,8 @@ function buildProtocol(
     ];
     return {
       id,
-      name: "Smart Engine",
-      tagline: "≥90% in Zone 2 — forced rest om verzuring uit te stellen.",
+    name: "Smart Engine (Optimaal)",
+      tagline: "Jouw perfecte tempo. Berekend op basis van je leeftijd en PR's. Constante output, minimale kans op de man met de hamer.",
       splits,
       narrative: buildClusterNarrative("smart_engine", predicted),
       loadScalingPct,
